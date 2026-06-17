@@ -1,0 +1,3 @@
+config_path: /etc/puppetlabs/puppet/puppet.conf
+lock_path: /opt/puppetlabs/puppet/public/agent_disabled.lock
+summary_path: /opt/puppetlabs/puppet/public/last_run_summary.yaml

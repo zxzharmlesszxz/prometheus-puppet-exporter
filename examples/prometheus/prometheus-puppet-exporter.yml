@@ -1,0 +1,166 @@
+groups:
+  - name: puppet-exporter
+    rules:
+      - alert: PuppetExporterDown
+        expr: up{job=~"puppet-exporter|prometheus-puppet-exporter"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Puppet exporter target is down on {{ $labels.instance }}
+          description: |
+            Prometheus has been unable to scrape prometheus-puppet-exporter on {{ $labels.instance }} for at least 5 minutes.
+
+      - alert: PuppetConfigSourceDown
+        expr: puppet_config_up == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet config source is unreadable on {{ $labels.instance }}
+          description: |
+            prometheus-puppet-exporter could not read puppet.conf for at least 10 minutes.
+
+      - alert: PuppetExporterCollectionFailed
+        expr: puppet_exporter_last_collection_success == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet exporter collection failed on {{ $labels.instance }}
+          description: |
+            prometheus-puppet-exporter has reported unsuccessful background collections for at least 10 minutes.
+
+      - alert: PuppetConfigInvalid
+        expr: puppet_config_up == 1 and puppet_config_valid == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet config is present but invalid on {{ $labels.instance }}
+          description: |
+            puppet.conf is readable, but one or more required fields are empty.
+
+      - alert: PuppetLockStateSourceDown
+        expr: puppet_agent_lock_state_up == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet lock state source is unreadable on {{ $labels.instance }}
+          description: |
+            prometheus-puppet-exporter could not read agent_disabled.lock for at least 10 minutes.
+
+      - alert: PuppetLockStateInvalid
+        expr: puppet_agent_lock_state_up == 1 and puppet_agent_lock_state_valid == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet lock state source is invalid on {{ $labels.instance }}
+          description: |
+            agent_disabled.lock is readable, but prometheus-puppet-exporter cannot parse it.
+
+      - alert: PuppetRunSummarySourceDown
+        expr: puppet_last_run_summary_up == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: Puppet run summary source is unreadable on {{ $labels.instance }}
+          description: |
+            prometheus-puppet-exporter could not read last_run_summary.yaml for at least 10 minutes.
+
+      - alert: PuppetRunSummaryInvalid
+        expr: puppet_last_run_summary_up == 1 and puppet_last_run_summary_valid == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: Puppet run summary source is invalid on {{ $labels.instance }}
+          description: |
+            last_run_summary.yaml is readable, but prometheus-puppet-exporter cannot parse or interpret it.
+
+      - alert: PuppetRunSummaryStale
+        expr: puppet_last_run_summary_valid == 1 and time() - puppet_last_run_summary_mtime_seconds > 7200
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet run summary is stale on {{ $labels.instance }}
+          description: |
+            last_run_summary.yaml for {{ $labels.instance }} has not been updated for more than 2 hours.
+
+      - alert: PuppetLastRunStale
+        expr: puppet_last_run_summary_valid == 1 and time() - puppet_last_run_timestamp_seconds > 7200
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet last run is stale on {{ $labels.instance }}
+          description: |
+            The last Puppet run timestamp for {{ $labels.instance }} is older than 2 hours.
+
+      - alert: PuppetLastRunFailed
+        expr: puppet_last_run_summary_valid == 1 and puppet_last_run_success == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Last Puppet run was unsuccessful on {{ $labels.instance }}
+          description: |
+            The most recent Puppet run for {{ $labels.instance }} is marked unsuccessful by the exporter.
+
+      - alert: PuppetResourceProblems
+        expr: puppet_last_run_summary_valid == 1 and puppet_resources{name=~"failed|failed_to_restart|out_of_sync"} > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Puppet resource problems on {{ $labels.instance }}
+          description: |
+            The latest Puppet run for {{ $labels.instance }} reports {{ $labels.name }}={{ $value }}.
+
+      - alert: PuppetEventFailures
+        expr: puppet_last_run_summary_valid == 1 and puppet_events{name="failure"} > 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: Puppet event failures on {{ $labels.instance }}
+          description: |
+            The latest Puppet run for {{ $labels.instance }} reports {{ $value }} failed events.
+
+      - alert: PuppetAgentDisabled
+        expr: puppet_agent_disabled == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet agent is disabled on {{ $labels.instance }}
+          description: |
+            The Puppet agent on {{ $labels.instance }} is disabled. Message: {{ $labels.message }}
+
+      - alert: PuppetCollectorReadErrors
+        expr: increase(puppet_config_read_errors_total[30m]) > 0
+          or increase(puppet_agent_lock_read_errors_total[30m]) > 0
+          or increase(puppet_last_run_summary_read_errors_total[30m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet exporter encountered source read errors on {{ $labels.instance }}
+          description: |
+            One or more Puppet exporter sources observed file read/open errors in the last 30 minutes.
+
+      - alert: PuppetCollectorParseErrors
+        expr: increase(puppet_config_parse_errors_total[30m]) > 0
+          or increase(puppet_agent_lock_parse_errors_total[30m]) > 0
+          or increase(puppet_last_run_summary_parse_errors_total[30m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet exporter encountered source parse errors on {{ $labels.instance }}
+          description: |
+            One or more Puppet exporter sources observed parse/decode errors in the last 30 minutes.
