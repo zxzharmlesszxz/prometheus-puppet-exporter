@@ -44,6 +44,25 @@ Make, Compose, and smoke defaults use `FEATURE_CONFIG_FILE=prometheus-puppet-exp
 Runtime config can always be overridden with another `--puppet.config-file=...` value.
 Data refresh runs through the framework snapshot collector in a background worker; scrapes return the last collected snapshot.
 
+## Configuration Example
+
+The YAML config file accepts these Puppet-specific keys:
+
+```yaml
+config_path: /etc/puppetlabs/puppet/puppet.conf
+lock_path: /opt/puppetlabs/puppet/public/agent_disabled.lock
+summary_path: /opt/puppetlabs/puppet/public/last_run_summary.yaml
+```
+
+When the exporter runs in a container, mount the host Puppet state and point the
+paths at the mounted tree:
+
+```yaml
+config_path: /host/etc/puppetlabs/puppet/puppet.conf
+lock_path: /host/opt/puppetlabs/puppet/public/agent_disabled.lock
+summary_path: /host/opt/puppetlabs/puppet/public/last_run_summary.yaml
+```
+
 ## Metrics
 
 Example output:

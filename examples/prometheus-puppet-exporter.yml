@@ -1,3 +1,13 @@
+# Exporter config keys:
+# - config_path: /etc/puppetlabs/puppet/puppet.conf
+# - lock_path: /opt/puppetlabs/puppet/public/agent_disabled.lock
+# - summary_path: /opt/puppetlabs/puppet/public/last_run_summary.yaml
+#
+# Example with host-mounted Puppet state inside a container:
+# config_path: /host/etc/puppetlabs/puppet/puppet.conf
+# lock_path: /host/opt/puppetlabs/puppet/public/agent_disabled.lock
+# summary_path: /host/opt/puppetlabs/puppet/public/last_run_summary.yaml
+#
 config_path: /etc/puppetlabs/puppet/puppet.conf
 lock_path: /opt/puppetlabs/puppet/public/agent_disabled.lock
 summary_path: /opt/puppetlabs/puppet/public/last_run_summary.yaml
