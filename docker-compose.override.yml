@@ -1,7 +1,7 @@
 services:
   exporter:
     command:
-      - --web.listen-address=:${COMPOSE_EXPORTER_PORT:-9888}
+      - --web.listen-address=:${COMPOSE_EXPORTER_PORT:-9819}
       - --${FEATURE_NAME}.refresh-interval=30s
       - --${FEATURE_NAME}.config-path=/testdata/puppet.conf
       - --${FEATURE_NAME}.lock-path=/testdata/agent_disabled.lock

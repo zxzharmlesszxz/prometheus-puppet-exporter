@@ -109,7 +109,7 @@ func (c Checker) snapshotLock(path string) LockSnapshot {
 	return LockSnapshot{
 		Path:                  scrape.Path,
 		Up:                    up,
-		Valid:                 scrape.Up,
+		Valid:                 scrape.Err == nil,
 		MTimeSeconds:          scrape.MTimeSeconds,
 		ReadErrorsTotal:       scrape.ReadErrorsTotal,
 		ParseErrorsTotal:      scrape.ParseErrorsTotal,

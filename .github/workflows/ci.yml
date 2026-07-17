@@ -30,6 +30,7 @@ jobs:
 
     steps:
       - name: Prepare Alpine
+        shell: sh
         run: apk add --no-cache bash build-base ca-certificates git make
 
       - name: Checkout
@@ -51,6 +52,7 @@ jobs:
 
     steps:
       - name: Prepare Alpine
+        shell: sh
         run: apk add --no-cache bash ca-certificates git make
 
       - name: Checkout
@@ -150,6 +152,36 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare Docker Build Metadata
+        id: docker-meta
+        shell: bash
+        run: |
+          revision="${GITHUB_SHA::7}"
+          build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          ldflags="$(
+            cat <<EOF
+          -s -w
+          -X 'github.com/prometheus/common/version.Version=${GITHUB_REF_NAME}'
+          -X 'github.com/prometheus/common/version.Branch=${GITHUB_REF_NAME}'
+          -X 'github.com/prometheus/common/version.Revision=${revision}'
+          -X 'github.com/prometheus/common/version.BuildUser=github-actions'
+          -X 'github.com/prometheus/common/version.BuildDate=${build_date}'
+          -X 'github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter.injectedExporterName=prometheus-puppet-exporter'
+          -X 'github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter.injectedExporterDescription=Prometheus Puppet Exporter'
+          -X 'github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter.injectedFeatureName=puppet'
+          -X 'github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter.injectedMetricNamespace=puppet_exporter'
+          -X 'github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter.injectedListenAddress=:9819'
+          -X 'github.com/zxzharmlesszxz/prometheus-puppet-exporter/internal/puppet.DefaultFeatureConfigFileName=prometheus-puppet-exporter.yml'
+          EOF
+          )"
+          ldflags="$(printf '%s\n' "${ldflags}" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
+
+          {
+            echo "revision=${revision}"
+            echo "build_date=${build_date}"
+            echo "ldflags=${ldflags}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v7
         with:
@@ -160,3 +192,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          build-args: |
+            PROJECT_NAME=prometheus-puppet-exporter
+            LDFLAGS=${{ steps.docker-meta.outputs.ldflags }}

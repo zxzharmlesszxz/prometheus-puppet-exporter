@@ -12,6 +12,7 @@ COVERAGE_THRESHOLD ?= 85.0
 PROJECT_NAME ?= prometheus-puppet-exporter
 PROJECT_DESC ?= Prometheus Puppet Exporter
 FEATURE_NAME ?= puppet
+FEATURE_NAMESPACE ?= puppet
 METRIC_NAMESPACE ?= puppet_exporter
 DEFAULT_PORT ?= :9819
 FEATURE_CONFIG_FILE ?= prometheus-puppet-exporter.yml
