@@ -18,6 +18,7 @@ const (
 	metricAgentLockParseErrors         = "agent_lock_parse_errors"
 	metricAgentLockScrapeDuration      = "agent_lock_scrape_duration"
 	metricVersionInfo                  = "version_info"
+	metricCatalogVersionTimestamp      = "catalog_version_timestamp"
 	metricLastRunDuration              = "last_run_duration"
 	metricLastRunTimestamp             = "last_run_timestamp"
 	metricResources                    = "resources"
@@ -124,6 +125,12 @@ var featureMetricSpecs = []featurekit.FeatureMetricSpec{
 		Name:   "_version_info",
 		Help:   "The version of Puppet agent.",
 		Labels: []string{"value", "name"},
+	},
+	{
+		ID:    metricCatalogVersionTimestamp,
+		Scope: featurekit.MetricScopeFeature,
+		Name:  "_catalog_version_timestamp_seconds",
+		Help:  "Unix timestamp encoded in the Puppet catalog version.",
 	},
 	{
 		ID:     metricLastRunDuration,

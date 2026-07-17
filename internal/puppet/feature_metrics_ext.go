@@ -74,6 +74,9 @@ func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.Featu
 	if snapshot.Valid {
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Catalog, "CatalogVersion")
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Puppet, "PuppetVersion")
+		if catalogTimestamp, ok := snapshot.Versions.CatalogTimestampSeconds(); ok {
+			ch <- prometheus.MustNewConstMetric(metrics.Get(metricCatalogVersionTimestamp), prometheus.GaugeValue, catalogTimestamp)
+		}
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSuccess), prometheus.GaugeValue, snapshot.RunSuccess)
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunTimestamp), prometheus.GaugeValue, snapshot.LastRunTimestamp)
 		collectNamedMetrics(ch, metrics.Get(metricLastRunDuration), snapshot.Durations)

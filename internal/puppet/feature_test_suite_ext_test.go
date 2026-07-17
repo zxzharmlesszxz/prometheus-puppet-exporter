@@ -139,6 +139,7 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 	exportertest.AssertMetricValue(t, families, "puppet_resources", map[string]string{"name": "changed"}, 2)
 	exportertest.AssertMetricValue(t, families, "puppet_events", map[string]string{"name": "success"}, 12)
 	exportertest.AssertMetricValue(t, families, "puppet_version_info", map[string]string{"name": "PuppetVersion", "value": "8.10.0"}, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_catalog_version_timestamp_seconds", nil, 1774217222)
 	exportertest.AssertMetricValue(t, families, testLastSuccess, nil, 1)
 	exportertest.AssertMetricValue(t, families, testLastTimestamp, nil, 1774433244)
 	exportertest.AssertMetricValue(t, families, testLastSuccessfulTS, nil, 1774433244)
@@ -238,6 +239,7 @@ func testExporterSmokeSpecIncludesPuppetMetrics(t *testing.T, suite *FeatureTest
 	for _, want := range []string{
 		suite.MetricName(testFeatureName, "", metricConfigUp) + " 1",
 		suite.MetricName(testFeatureName, "", metricAgentLockStateUp) + " 1",
+		suite.MetricName(testFeatureName, "", metricCatalogVersionTimestamp) + " 1.774227222e+09",
 		suite.MetricName(testFeatureName, "", metricLastRunSummaryUp) + " 1",
 	} {
 		if !featuretest.HasString(spec.WantMetrics, want) {

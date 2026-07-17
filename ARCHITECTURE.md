@@ -116,6 +116,7 @@ The bundled Prometheus rules cover:
 - framework background collection failure
 - source read failures and readable-but-invalid source states
 - stale `last_run_summary.yaml` mtime and stale Puppet run timestamps
+- stale numeric Puppet catalog version timestamps
 - failed Puppet runs
 - critical resource states: `failed`, `failed_to_restart`, and `out_of_sync`
 - event failures via `puppet_events{name="failure"}`

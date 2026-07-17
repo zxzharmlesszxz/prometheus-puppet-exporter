@@ -88,6 +88,7 @@ Important metric groups:
 - `puppet_config_up`
 - `puppet_config_valid`
 - `puppet_version_info`
+- `puppet_catalog_version_timestamp_seconds`
 - `puppet_last_run_success`
 - `puppet_last_run_summary_up`
 - `puppet_last_run_timestamp_seconds`

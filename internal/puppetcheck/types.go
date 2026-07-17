@@ -1,6 +1,9 @@
 package puppetcheck
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type Paths struct {
 	Config  string
@@ -62,4 +65,9 @@ type SummarySnapshot struct {
 type Versions struct {
 	Catalog string `yaml:"config"`
 	Puppet  string `yaml:"puppet"`
+}
+
+func (v Versions) CatalogTimestampSeconds() (float64, bool) {
+	timestamp, err := strconv.ParseInt(v.Catalog, 10, 64)
+	return float64(timestamp), err == nil && timestamp > 0
 }

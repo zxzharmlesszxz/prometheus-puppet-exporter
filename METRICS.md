@@ -135,6 +135,12 @@ Labels:
 
 Current exported entries include `CatalogVersion` and `PuppetVersion`.
 
+`puppet_catalog_version_timestamp_seconds`
+
+Unix timestamp encoded in Puppet's `version.config` catalog version. The metric
+is emitted only when the catalog version is a positive numeric value. It can be
+used to alert when an agent has not applied a new catalog recently.
+
 `puppet_last_run_success`
 
 Whether the last Puppet run succeeded. The exporter derives this from

@@ -101,6 +101,18 @@ groups:
           description: |
             The last Puppet run timestamp for {{ $labels.instance }} is older than 2 hours.
 
+      - alert: PuppetCatalogVersionStale
+        expr: puppet_last_run_summary_valid == 1
+          and puppet_catalog_version_timestamp_seconds > 0
+          and time() - puppet_catalog_version_timestamp_seconds > 3600
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Puppet catalog version is stale on {{ $labels.instance }}
+          description: |
+            The Puppet catalog version timestamp for {{ $labels.instance }} is older than 1 hour.
+
       - alert: PuppetLastRunFailed
         expr: puppet_last_run_summary_valid == 1 and puppet_last_run_success == 0
         for: 15m
