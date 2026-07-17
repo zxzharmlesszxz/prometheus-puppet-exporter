@@ -347,7 +347,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "avg(time() - (puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"} > 0))",
+                        "expr": "avg((time() - puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"}) and puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"} > 0)",
                         "legendFormat": "age",
                         "range": false,
                         "instant": true
@@ -964,7 +964,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "time() - (puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"} > 0)",
+                        "expr": "(time() - puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"}) and puppet_exporter_last_successful_collection_timestamp_seconds{job=~\"$job\"} > 0",
                         "legendFormat": "{{instance}} success age",
                         "range": true,
                         "instant": false
@@ -7096,12 +7096,12 @@
             "group": "prometheus",
             "kind": "DataQuery",
             "spec": {
-              "query": "label_values(up, job)",
+              "query": "label_values(up{job=~\"^(prometheus[_-])?puppet[_-]exporter$\"}, job)",
               "refId": "StandardVariableQuery"
             },
             "version": "v0"
           },
-          "definition": "label_values(up, job)",
+          "definition": "label_values(up{job=~\"^(prometheus[_-])?puppet[_-]exporter$\"}, job)",
           "refresh": "onDashboardLoad",
           "regex": "",
           "current": {
@@ -7111,7 +7111,7 @@
           "options": [],
           "multi": true,
           "includeAll": true,
-          "allValue": ".*puppet.*",
+          "allValue": "^(prometheus[_-])?puppet[_-]exporter$",
           "sort": "alphabeticalAsc",
           "hide": "dontHide",
           "skipUrlSync": false,
