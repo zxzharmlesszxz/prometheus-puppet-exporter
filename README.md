@@ -127,6 +127,8 @@ cumulative counters. Use `rate()` or `increase()` for history; use `*_up` and
 
 The exporter derives `puppet_last_run_success` locally from summary counters instead of exposing it as a raw Puppet field.
 Missing `agent_disabled.lock` is treated as a valid enabled-agent state.
+A present, valid lock file means the agent is disabled even when its optional
+`disabled_message` field is empty or absent.
 
 ## Docker Compose
 

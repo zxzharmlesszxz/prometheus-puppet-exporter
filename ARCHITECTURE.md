@@ -62,6 +62,10 @@ them through the scaffold sync flow only.
     `puppet_agent_lock_state_up` and `puppet_agent_lock_state_valid` expose the
     failure mode.
 
+A readable, valid `agent_disabled.lock` always represents a disabled agent.
+Its optional `disabled_message` value is metadata only and does not determine
+the disabled state.
+
 ## Failure Semantics
 
 If refresh fails before the first successful snapshot, the exporter exposes collection health metrics, but no business metrics.

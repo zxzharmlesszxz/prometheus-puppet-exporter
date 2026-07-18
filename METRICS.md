@@ -22,6 +22,8 @@ Current source state is represented by `up` and `valid` gauges:
 Missing `agent_disabled.lock` is treated as a healthy enabled-agent state, so
 `puppet_agent_lock_state_up = 1`, `puppet_agent_lock_state_valid = 1`, and
 `puppet_agent_disabled{message=""} = 0`.
+The presence of a valid lock file means the agent is disabled even when its
+optional `disabled_message` field is absent or empty.
 
 ### Current State Gauges
 
@@ -123,8 +125,9 @@ Labels:
 
 - `message`
 
-The metric is emitted as `0` with an empty message when the lock source is
-missing or invalid.
+The metric is emitted as `1` whenever a valid lock file is present. The
+`message` label is informational and can be empty. The metric is emitted as `0`
+with an empty message when the lock source is missing or invalid.
 
 `puppet_version_info`
 

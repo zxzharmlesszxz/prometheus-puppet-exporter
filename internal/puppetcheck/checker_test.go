@@ -34,6 +34,9 @@ func TestCheckerReadsFixtureState(t *testing.T) {
 	if !snapshot.Lock.Valid {
 		t.Fatal("Lock.Valid = false, want true")
 	}
+	if !snapshot.Lock.Disabled {
+		t.Fatal("Lock.Disabled = false, want true")
+	}
 	const wantDisabledMessage = "Very long test disable message for grafana dashboard testing"
 	if snapshot.Lock.DisabledMessage != wantDisabledMessage {
 		t.Fatalf("Lock.DisabledMessage = %q, want %q", snapshot.Lock.DisabledMessage, wantDisabledMessage)
@@ -75,11 +78,47 @@ func TestCheckerTreatsMissingLockAsEnabledAgent(t *testing.T) {
 	if !snapshot.Lock.Valid {
 		t.Fatal("Lock.Valid = false, want true")
 	}
+	if snapshot.Lock.Disabled {
+		t.Fatal("Lock.Disabled = true, want false")
+	}
 	if snapshot.Lock.DisabledMessage != "" {
 		t.Fatalf("Lock.DisabledMessage = %q, want empty", snapshot.Lock.DisabledMessage)
 	}
 	if snapshot.Lock.ReadErrorsTotal != 0 || snapshot.Lock.ParseErrorsTotal != 0 {
 		t.Fatalf("Lock counters = read %d parse %d, want 0/0", snapshot.Lock.ReadErrorsTotal, snapshot.Lock.ParseErrorsTotal)
+	}
+}
+
+func TestCheckerTreatsPresentLockWithoutMessageAsDisabled(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	lockPath := filepath.Join(dir, "agent_disabled.lock")
+	if err := os.WriteFile(lockPath, []byte(`{}`), 0o600); err != nil {
+		t.Fatalf("WriteFile(lock) error = %v", err)
+	}
+
+	fixtures := filepath.Join("..", "..", "testdata")
+	checker := NewChecker(Paths{
+		Config:  filepath.Join(fixtures, "puppet.conf"),
+		Lock:    lockPath,
+		Summary: filepath.Join(fixtures, "last_run_summary.yaml"),
+	})
+
+	snapshot := checker.Snapshot(context.Background(), time.Unix(1774433244, 0))
+	if !snapshot.Success {
+		t.Fatal("snapshot.Success = false, want true")
+	}
+	if !snapshot.Lock.Up || !snapshot.Lock.Valid || !snapshot.Lock.Disabled {
+		t.Fatalf(
+			"Lock Up/Valid/Disabled = %v/%v/%v, want true/true/true",
+			snapshot.Lock.Up,
+			snapshot.Lock.Valid,
+			snapshot.Lock.Disabled,
+		)
+	}
+	if snapshot.Lock.DisabledMessage != "" {
+		t.Fatalf("Lock.DisabledMessage = %q, want empty", snapshot.Lock.DisabledMessage)
 	}
 }
 
@@ -175,6 +214,34 @@ func TestCheckerTreatsMalformedConfigAsReadableButInvalid(t *testing.T) {
 			snapshot.Config.Valid,
 			snapshot.Config.Err,
 			snapshot.Config.ParseErrorsTotal,
+		)
+	}
+}
+
+func TestCheckerRejectsEmptySummary(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	summaryPath := filepath.Join(dir, "last_run_summary.yaml")
+	if err := os.WriteFile(summaryPath, nil, 0o600); err != nil {
+		t.Fatalf("WriteFile(summary) error = %v", err)
+	}
+
+	fixtures := filepath.Join("..", "..", "testdata")
+	checker := NewChecker(Paths{
+		Config:  filepath.Join(fixtures, "puppet.conf"),
+		Lock:    filepath.Join(fixtures, "agent_disabled.lock"),
+		Summary: summaryPath,
+	})
+
+	snapshot := checker.Snapshot(context.Background(), time.Unix(1774433244, 0))
+	if !snapshot.Summary.Up || snapshot.Summary.Valid || snapshot.Summary.Err == nil || snapshot.Summary.ParseErrorsTotal != 1 {
+		t.Fatalf(
+			"Summary failure = up %v valid %v err %v parse %d, want true/false/non-nil/1",
+			snapshot.Summary.Up,
+			snapshot.Summary.Valid,
+			snapshot.Summary.Err,
+			snapshot.Summary.ParseErrorsTotal,
 		)
 	}
 }

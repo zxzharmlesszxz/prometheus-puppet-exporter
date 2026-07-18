@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"io"
 	"os"
 	"sync/atomic"
 	"time"
@@ -82,23 +80,33 @@ func (c Checker) snapshotConfig(path string) ConfigSnapshot {
 }
 
 func (c Checker) snapshotLock(path string) LockSnapshot {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return LockSnapshot{Path: path, Up: true, Valid: true}
-	}
-
+	present := true
 	var lock struct {
 		DisabledMessage string `json:"disabled_message"`
 	}
 	scrape := framework.FileScraper{
 		ReadErrorsTotal:  c.lockReadErrorsTotal,
 		ParseErrorsTotal: c.lockParseErrorsTotal,
+		ReadFile: func(path string) ([]byte, error) {
+			content, err := os.ReadFile(path)
+			if os.IsNotExist(err) {
+				present = false
+				return nil, nil
+			}
+			return content, err
+		},
 	}.Scrape(path, func(content []byte) error {
+		if !present {
+			return nil
+		}
 		return json.Unmarshal(content, &lock)
 	})
+	valid := scrape.Err == nil
 	return LockSnapshot{
 		Path:                  scrape.Path,
 		Up:                    scrape.Up,
-		Valid:                 scrape.Err == nil,
+		Valid:                 valid,
+		Disabled:              present && valid,
 		MTimeSeconds:          scrape.MTimeSeconds,
 		ReadErrorsTotal:       scrape.ReadErrorsTotal,
 		ParseErrorsTotal:      scrape.ParseErrorsTotal,
@@ -117,13 +125,7 @@ func (c Checker) snapshotSummary(path string) SummarySnapshot {
 	}.Scrape(path, func(content []byte) error {
 		var summary runSummary
 		if err := yaml.NewDecoder(bytes.NewReader(content)).Decode(&summary); err != nil {
-			if errors.Is(err, io.EOF) {
-				return nil
-			}
 			return err
-		}
-		if summary.empty() {
-			return nil
 		}
 		if err := summary.validate(); err != nil {
 			return err

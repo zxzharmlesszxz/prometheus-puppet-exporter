@@ -37,6 +37,7 @@ type LockSnapshot struct {
 	Path                  string
 	Up                    bool
 	Valid                 bool
+	Disabled              bool
 	DisabledMessage       string
 	MTimeSeconds          float64
 	ReadErrorsTotal       uint64

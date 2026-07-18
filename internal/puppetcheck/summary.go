@@ -14,14 +14,6 @@ type Changes struct {
 	Total float64 `yaml:"total"`
 }
 
-func (r runSummary) empty() bool {
-	return len(r.Events) == 0 &&
-		len(r.Resources) == 0 &&
-		len(r.Durations) == 0 &&
-		r.Versions == (Versions{}) &&
-		r.Changes == (Changes{})
-}
-
 func (r runSummary) validate() error {
 	if _, ok := r.Events["failure"]; !ok {
 		return errors.New("summary events.failure is required")

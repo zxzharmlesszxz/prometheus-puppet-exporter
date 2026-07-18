@@ -61,7 +61,7 @@ func collectLockMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureM
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockReadErrors), prometheus.CounterValue, float64(snapshot.ReadErrorsTotal))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockParseErrors), prometheus.CounterValue, float64(snapshot.ParseErrorsTotal))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockScrapeDuration), prometheus.GaugeValue, snapshot.ScrapeDurationSeconds)
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentDisabled), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid && snapshot.DisabledMessage != ""), disabledMessage(snapshot))
+	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentDisabled), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid && snapshot.Disabled), disabledMessage(snapshot))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockStateUp), prometheus.GaugeValue, framework.BoolFloat(snapshot.Up))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockStateValid), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid))
 }

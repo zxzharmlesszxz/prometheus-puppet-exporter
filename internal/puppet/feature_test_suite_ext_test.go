@@ -69,11 +69,37 @@ func NewFeatureTestSpec() FeatureTestSpec {
 
 func RegisterFeatureTests(suite *FeatureTestSuite) {
 	suite.Register("collector_collects_puppet_metrics", func(t *testing.T) { testCollectorCollectsPuppetMetrics(t, suite) })
+	suite.Register("collector_reports_present_lock_without_message_as_disabled", func(t *testing.T) {
+		testCollectorReportsPresentLockWithoutMessageAsDisabled(t, suite)
+	})
 	suite.Register("collector_omits_business_metrics_for_failed_sources", func(t *testing.T) { testCollectorOmitsBusinessMetricsForFailedSources(t, suite) })
 	suite.Register("collector_rejects_duplicate_registration", func(t *testing.T) { testCollectorRejectsDuplicateRegistration(t, suite) })
 	suite.Register("exporter_registers_collector_with_fixtures", func(t *testing.T) { testExporterRegistersCollectorWithFixtures(t, suite) })
 	suite.Register("exporter_cli_overrides_config_file", func(t *testing.T) { testExporterCLIOverridesConfigFile(t, suite) })
 	suite.Register("smoke_spec_includes_puppet_metrics", func(t *testing.T) { testExporterSmokeSpecIncludesPuppetMetrics(t, suite) })
+}
+
+func testCollectorReportsPresentLockWithoutMessageAsDisabled(t *testing.T, suite *FeatureTestSuite) {
+	now := time.Unix(1774433244, 0)
+	collector := suite.NewCollectorWithNow(
+		testFeatureName,
+		testMetricNamespace,
+		nil,
+		suite.NewFakeSnapshotter(Snapshot{puppet: puppetcheck.Snapshot{
+			AttemptTime: now,
+			Success:     true,
+			Lock: puppetcheck.LockSnapshot{
+				Up:       true,
+				Valid:    true,
+				Disabled: true,
+			},
+		}}),
+		testRefreshInterval,
+		func() time.Time { return now },
+	)
+
+	families := exportertest.RegisterAndGather(t, collector)
+	exportertest.AssertMetricValue(t, families, "puppet_agent_disabled", map[string]string{"message": ""}, 1)
 }
 
 func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
@@ -95,6 +121,7 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 			Lock: puppetcheck.LockSnapshot{
 				Up:                    true,
 				Valid:                 true,
+				Disabled:              true,
 				DisabledMessage:       "maintenance",
 				MTimeSeconds:          1774433010,
 				ScrapeDurationSeconds: 0.02,
