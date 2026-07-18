@@ -63,6 +63,12 @@ lock_path: /host/opt/puppetlabs/puppet/public/agent_disabled.lock
 summary_path: /host/opt/puppetlabs/puppet/public/last_run_summary.yaml
 ```
 
+The runtime image runs as the non-root `nobody` user. Every parent directory
+must be searchable and each configured Puppet file must be readable by the
+container runtime UID/GID. Prefer granting group read access or configuring an
+explicit runtime user through Compose `user` or a Kubernetes
+`securityContext`; do not make Puppet state writable by the exporter.
+
 ## Metrics
 
 Example output:
