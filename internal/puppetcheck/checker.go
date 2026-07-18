@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -39,7 +40,7 @@ func NewChecker(paths Paths) Checker {
 func (c Checker) Snapshot(_ context.Context, now time.Time) Snapshot {
 	config := c.snapshotConfig(c.Paths.Config)
 	lock := c.snapshotLock(c.Paths.Lock)
-	summary := c.snapshotSummary(c.Paths.Summary)
+	summary := c.snapshotSummary(c.Paths.Summary, now)
 
 	return Snapshot{
 		AttemptTime: now,
@@ -75,7 +76,9 @@ func (c Checker) snapshotConfig(path string) ConfigSnapshot {
 	snapshot.Server = config.Section("main").Key("server").String()
 	snapshot.Certname = config.Section("main").Key("certname").String()
 	snapshot.Environment = config.Section("main").Key("environment").String()
-	snapshot.Valid = snapshot.Server != "" && snapshot.Certname != "" && snapshot.Environment != ""
+	snapshot.Valid = strings.TrimSpace(snapshot.Server) != "" &&
+		strings.TrimSpace(snapshot.Certname) != "" &&
+		strings.TrimSpace(snapshot.Environment) != ""
 	return snapshot
 }
 
@@ -116,7 +119,7 @@ func (c Checker) snapshotLock(path string) LockSnapshot {
 	}
 }
 
-func (c Checker) snapshotSummary(path string) SummarySnapshot {
+func (c Checker) snapshotSummary(path string, now time.Time) SummarySnapshot {
 	var interpreted SummarySnapshot
 	hasSummary := false
 	scrape := framework.FileScraper{
@@ -127,7 +130,7 @@ func (c Checker) snapshotSummary(path string) SummarySnapshot {
 		if err := yaml.NewDecoder(bytes.NewReader(content)).Decode(&summary); err != nil {
 			return err
 		}
-		if err := summary.validate(); err != nil {
+		if err := summary.validate(now); err != nil {
 			return err
 		}
 		interpreted = summary.interpret()

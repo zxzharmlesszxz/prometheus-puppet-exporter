@@ -2,6 +2,7 @@ package puppet
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -77,13 +78,13 @@ func FeatureConfigFile(config *Config) *string {
 }
 
 func ValidateFeatureConfig(config Config) error {
-	if config.ConfigPath == "" {
+	if strings.TrimSpace(config.ConfigPath) == "" {
 		return errors.New("config path must not be empty")
 	}
-	if config.LockPath == "" {
+	if strings.TrimSpace(config.LockPath) == "" {
 		return errors.New("lock path must not be empty")
 	}
-	if config.SummaryPath == "" {
+	if strings.TrimSpace(config.SummaryPath) == "" {
 		return errors.New("summary path must not be empty")
 	}
 	return nil
@@ -98,7 +99,7 @@ func FeatureRuntimeConfigEntries(_ featurekit.RuntimeConfigContext[Config], conf
 }
 
 func normalizeString(value string, fallback string) string {
-	if value == "" {
+	if strings.TrimSpace(value) == "" {
 		return fallback
 	}
 	return value

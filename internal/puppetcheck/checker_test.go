@@ -50,8 +50,8 @@ func TestCheckerReadsFixtureState(t *testing.T) {
 	if snapshot.Summary.RunSuccess != 1 {
 		t.Fatalf("Summary.RunSuccess = %v, want 1", snapshot.Summary.RunSuccess)
 	}
-	if snapshot.Summary.LastRunTimestamp != 1791596213 {
-		t.Fatalf("Summary.LastRunTimestamp = %v, want 1791596213", snapshot.Summary.LastRunTimestamp)
+	if snapshot.Summary.LastRunTimestamp != 1774433000 {
+		t.Fatalf("Summary.LastRunTimestamp = %v, want 1774433000", snapshot.Summary.LastRunTimestamp)
 	}
 	if _, ok := snapshot.Summary.Durations["last_run"]; ok {
 		t.Fatal("Summary.Durations retains last_run, want it moved to LastRunTimestamp")
@@ -218,6 +218,29 @@ func TestCheckerTreatsMalformedConfigAsReadableButInvalid(t *testing.T) {
 	}
 }
 
+func TestCheckerRejectsWhitespaceOnlyConfigValues(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	configPath := filepath.Join(dir, "puppet.conf")
+	config := "[main]\nserver = \"   \"\ncertname = node-1.example.net\nenvironment = production\n"
+	if err := os.WriteFile(configPath, []byte(config), 0o600); err != nil {
+		t.Fatalf("WriteFile(config) error = %v", err)
+	}
+
+	fixtures := filepath.Join("..", "..", "testdata")
+	checker := NewChecker(Paths{
+		Config:  configPath,
+		Lock:    filepath.Join(fixtures, "agent_disabled.lock"),
+		Summary: filepath.Join(fixtures, "last_run_summary.yaml"),
+	})
+
+	snapshot := checker.Snapshot(context.Background(), time.Unix(1774433244, 0))
+	if !snapshot.Config.Up || snapshot.Config.Valid {
+		t.Fatalf("Config Up/Valid = %v/%v, want true/false", snapshot.Config.Up, snapshot.Config.Valid)
+	}
+}
+
 func TestCheckerRejectsEmptySummary(t *testing.T) {
 	t.Parallel()
 
@@ -314,5 +337,130 @@ time:
 				)
 			}
 		})
+	}
+}
+
+func TestCheckerRejectsInvalidSummaryValues(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		summary string
+	}{
+		{
+			name: "negative event counter",
+			summary: `events:
+  failure: -1
+resources:
+  failed: 0
+time:
+  last_run: 1774433244
+`,
+		},
+		{
+			name: "non-finite resource counter",
+			summary: `events:
+  failure: 0
+resources:
+  failed: .nan
+time:
+  last_run: 1774433244
+`,
+		},
+		{
+			name: "zero last run timestamp",
+			summary: `events:
+  failure: 0
+resources:
+  failed: 0
+time:
+  last_run: 0
+`,
+		},
+		{
+			name: "future last run timestamp",
+			summary: `events:
+  failure: 0
+resources:
+  failed: 0
+time:
+  last_run: 1774433545
+`,
+		},
+		{
+			name: "future catalog timestamp",
+			summary: `version:
+  config: 1774433545
+events:
+  failure: 0
+resources:
+  failed: 0
+time:
+  last_run: 1774433244
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+			summaryPath := filepath.Join(dir, "last_run_summary.yaml")
+			if err := os.WriteFile(summaryPath, []byte(tt.summary), 0o600); err != nil {
+				t.Fatalf("WriteFile(summary) error = %v", err)
+			}
+
+			fixtures := filepath.Join("..", "..", "testdata")
+			checker := NewChecker(Paths{
+				Config:  filepath.Join(fixtures, "puppet.conf"),
+				Lock:    filepath.Join(fixtures, "agent_disabled.lock"),
+				Summary: summaryPath,
+			})
+
+			snapshot := checker.Snapshot(context.Background(), time.Unix(1774433244, 0))
+			if !snapshot.Summary.Up || snapshot.Summary.Valid || snapshot.Summary.Err == nil || snapshot.Summary.ParseErrorsTotal != 1 {
+				t.Fatalf(
+					"Summary failure = up %v valid %v err %v parse %d, want true/false/non-nil/1",
+					snapshot.Summary.Up,
+					snapshot.Summary.Valid,
+					snapshot.Summary.Err,
+					snapshot.Summary.ParseErrorsTotal,
+				)
+			}
+		})
+	}
+}
+
+func TestCheckerAccumulatesSourceErrorCounters(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	lockPath := filepath.Join(dir, "agent_disabled.lock")
+	summaryPath := filepath.Join(dir, "last_run_summary.yaml")
+	if err := os.WriteFile(lockPath, []byte(`{"disabled_message":`), 0o600); err != nil {
+		t.Fatalf("WriteFile(lock) error = %v", err)
+	}
+	if err := os.WriteFile(summaryPath, []byte("events: [broken"), 0o600); err != nil {
+		t.Fatalf("WriteFile(summary) error = %v", err)
+	}
+
+	checker := NewChecker(Paths{
+		Config:  filepath.Join(dir, "missing-puppet.conf"),
+		Lock:    lockPath,
+		Summary: summaryPath,
+	})
+	now := time.Unix(1774433244, 0)
+	checker.Snapshot(context.Background(), now)
+	snapshot := checker.Snapshot(context.Background(), now.Add(time.Minute))
+
+	if snapshot.Config.ReadErrorsTotal != 2 {
+		t.Fatalf("Config.ReadErrorsTotal = %d, want 2", snapshot.Config.ReadErrorsTotal)
+	}
+	if snapshot.Lock.ParseErrorsTotal != 2 {
+		t.Fatalf("Lock.ParseErrorsTotal = %d, want 2", snapshot.Lock.ParseErrorsTotal)
+	}
+	if snapshot.Summary.ParseErrorsTotal != 2 {
+		t.Fatalf("Summary.ParseErrorsTotal = %d, want 2", snapshot.Summary.ParseErrorsTotal)
 	}
 }

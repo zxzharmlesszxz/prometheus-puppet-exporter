@@ -21,6 +21,28 @@ func TestFeatureContract(t *testing.T) {
 	suite.RunTests(t)
 }
 
+func TestValidateFeatureConfigRejectsBlankPaths(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		config Config
+	}{
+		{name: "config path", config: Config{ConfigPath: " \t", LockPath: DefaultLockPath, SummaryPath: DefaultSummaryPath}},
+		{name: "lock path", config: Config{ConfigPath: DefaultConfigPath, LockPath: " \n", SummaryPath: DefaultSummaryPath}},
+		{name: "summary path", config: Config{ConfigPath: DefaultConfigPath, LockPath: DefaultLockPath, SummaryPath: "   "}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if err := ValidateFeatureConfig(tt.config); err == nil {
+				t.Fatal("ValidateFeatureConfig() error = nil, want non-nil")
+			}
+		})
+	}
+}
+
 func NewFeatureTestSpec() FeatureTestSpec {
 	fixtures := filepath.Join("..", "..", "testdata")
 	return FeatureTestSpec{

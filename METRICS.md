@@ -54,6 +54,11 @@ Whether `last_run_summary.yaml` was readable during the last collection.
 Whether `last_run_summary.yaml` was parsed and interpreted successfully. A
 valid summary must contain `events.failure`, `resources.failed`, and
 `time.last_run`; a readable summary missing any of these fields is invalid.
+Exported counters and durations must be finite and non-negative.
+`time.last_run` must be positive and no more than five minutes in the future.
+A numeric `version.config` catalog timestamp follows the same future-skew
+limit; non-numeric custom catalog versions remain valid but do not produce
+`puppet_catalog_version_timestamp_seconds`.
 
 ### Source Freshness and Duration
 

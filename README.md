@@ -129,6 +129,10 @@ The exporter derives `puppet_last_run_success` locally from summary counters ins
 Missing `agent_disabled.lock` is treated as a valid enabled-agent state.
 A present, valid lock file means the agent is disabled even when its optional
 `disabled_message` field is empty or absent.
+Required Puppet config values and configured source paths must contain
+non-whitespace characters. Summary counters and durations must be finite and
+non-negative; last-run and numeric catalog timestamps allow at most five
+minutes of future clock skew.
 
 ## Docker Compose
 
