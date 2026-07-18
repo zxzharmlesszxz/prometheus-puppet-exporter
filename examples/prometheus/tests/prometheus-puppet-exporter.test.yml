@@ -13,6 +13,12 @@ tests:
         values: '2x20'
       - series: 'puppet_events{job="puppet_exporter",instance="node-1",name="failure"}'
         values: '3x20'
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="invalid-node"}'
+        values: '0x20'
+      - series: 'puppet_resources{job="puppet_exporter",instance="invalid-node",name="failed"}'
+        values: '5x20'
+      - series: 'puppet_events{job="puppet_exporter",instance="invalid-node",name="failure"}'
+        values: '4x20'
     alert_rule_test:
       - eval_time: 16m
         alertname: PuppetResourceProblems
@@ -68,7 +74,7 @@ tests:
     input_series:
       - series: 'puppet_agent_disabled{job="puppet_exporter",instance="disabled-node",message=""}'
         values: '1x20'
-      - series: 'up{job="puppet_exporter",instance="down-node"}'
+      - series: 'up{job="production-puppet-exporter-eu",instance="down-node"}'
         values: '0x20'
     alert_rule_test:
       - eval_time: 16m
@@ -86,9 +92,40 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
-              job: puppet_exporter
+              job: production-puppet-exporter-eu
               instance: down-node
             exp_annotations:
               summary: Puppet exporter target is down on down-node
               description: |
                 Prometheus has been unable to scrape prometheus-puppet-exporter on down-node for at least 5 minutes.
+
+  - name: Source error counter increases produce diagnostic alerts
+    interval: 1m
+    input_series:
+      - series: 'puppet_config_read_errors_total{job="puppet_exporter",instance="read-node"}'
+        values: '0x14 1x16'
+      - series: 'puppet_last_run_summary_parse_errors_total{job="puppet_exporter",instance="parse-node"}'
+        values: '0x14 1x16'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: PuppetCollectorReadErrors
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: read-node
+            exp_annotations:
+              summary: Puppet exporter encountered source read errors on read-node
+              description: |
+                One or more Puppet exporter sources observed file read/open errors in the last 30 minutes.
+      - eval_time: 30m
+        alertname: PuppetCollectorParseErrors
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: parse-node
+            exp_annotations:
+              summary: Puppet exporter encountered source parse errors on parse-node
+              description: |
+                One or more Puppet exporter sources observed parse/decode errors in the last 30 minutes.

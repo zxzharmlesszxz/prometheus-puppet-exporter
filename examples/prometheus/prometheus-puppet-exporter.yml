@@ -2,7 +2,7 @@ groups:
   - name: puppet-exporter
     rules:
       - alert: PuppetExporterDown
-        expr: up{job=~"^(prometheus[_-])?puppet[_-]exporter$"} == 0
+        expr: up{job=~".*puppet.*exporter.*"} == 0
         for: 5m
         labels:
           severity: critical
