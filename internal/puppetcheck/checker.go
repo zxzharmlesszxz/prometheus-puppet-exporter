@@ -54,35 +54,30 @@ func (c Checker) Snapshot(_ context.Context, now time.Time) Snapshot {
 
 func (c Checker) snapshotConfig(path string) ConfigSnapshot {
 	var config *ini.File
-	readOK := false
 	scrape := framework.FileScraper{
 		ReadErrorsTotal:  c.configReadErrorsTotal,
 		ParseErrorsTotal: c.configParseErrorsTotal,
 	}.Scrape(path, func(content []byte) error {
-		readOK = true
 		var err error
 		config, err = ini.LoadSources(ini.LoadOptions{}, content)
 		return err
 	})
 	snapshot := ConfigSnapshot{
 		Path:                  scrape.Path,
+		Up:                    scrape.Up,
 		MTimeSeconds:          scrape.MTimeSeconds,
 		ReadErrorsTotal:       scrape.ReadErrorsTotal,
 		ParseErrorsTotal:      scrape.ParseErrorsTotal,
 		ScrapeDurationSeconds: scrape.ScrapeDurationSeconds,
 		Err:                   scrape.Err,
 	}
-	if readOK {
-		snapshot.Up = true
-	}
-	if !scrape.Up {
+	if scrape.Err != nil {
 		return snapshot
 	}
 	snapshot.Server = config.Section("main").Key("server").String()
 	snapshot.Certname = config.Section("main").Key("certname").String()
 	snapshot.Environment = config.Section("main").Key("environment").String()
 	snapshot.Valid = snapshot.Server != "" && snapshot.Certname != "" && snapshot.Environment != ""
-	snapshot.Up = true
 	return snapshot
 }
 
@@ -94,21 +89,15 @@ func (c Checker) snapshotLock(path string) LockSnapshot {
 	var lock struct {
 		DisabledMessage string `json:"disabled_message"`
 	}
-	readOK := false
 	scrape := framework.FileScraper{
 		ReadErrorsTotal:  c.lockReadErrorsTotal,
 		ParseErrorsTotal: c.lockParseErrorsTotal,
 	}.Scrape(path, func(content []byte) error {
-		readOK = true
 		return json.Unmarshal(content, &lock)
 	})
-	up := scrape.Up
-	if readOK {
-		up = true
-	}
 	return LockSnapshot{
 		Path:                  scrape.Path,
-		Up:                    up,
+		Up:                    scrape.Up,
 		Valid:                 scrape.Err == nil,
 		MTimeSeconds:          scrape.MTimeSeconds,
 		ReadErrorsTotal:       scrape.ReadErrorsTotal,
@@ -122,12 +111,10 @@ func (c Checker) snapshotLock(path string) LockSnapshot {
 func (c Checker) snapshotSummary(path string) SummarySnapshot {
 	var interpreted SummarySnapshot
 	hasSummary := false
-	readOK := false
 	scrape := framework.FileScraper{
 		ReadErrorsTotal:  c.summaryReadErrorsTotal,
 		ParseErrorsTotal: c.summaryParseErrorsTotal,
 	}.Scrape(path, func(content []byte) error {
-		readOK = true
 		var summary runSummary
 		if err := yaml.NewDecoder(bytes.NewReader(content)).Decode(&summary); err != nil {
 			if errors.Is(err, io.EOF) {
@@ -138,22 +125,23 @@ func (c Checker) snapshotSummary(path string) SummarySnapshot {
 		if summary.empty() {
 			return nil
 		}
+		if err := summary.validate(); err != nil {
+			return err
+		}
 		interpreted = summary.interpret()
 		hasSummary = true
 		return nil
 	})
 	snapshot := SummarySnapshot{
 		Path:                  scrape.Path,
+		Up:                    scrape.Up,
 		MTimeSeconds:          scrape.MTimeSeconds,
 		ReadErrorsTotal:       scrape.ReadErrorsTotal,
 		ParseErrorsTotal:      scrape.ParseErrorsTotal,
 		ScrapeDurationSeconds: scrape.ScrapeDurationSeconds,
 		Err:                   scrape.Err,
 	}
-	if readOK {
-		snapshot.Up = true
-	}
-	if !scrape.Up || !hasSummary {
+	if scrape.Err != nil || !hasSummary {
 		return snapshot
 	}
 	interpreted.Path = snapshot.Path

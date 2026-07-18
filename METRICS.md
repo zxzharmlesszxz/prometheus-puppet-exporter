@@ -49,7 +49,9 @@ Whether `last_run_summary.yaml` was readable during the last collection.
 
 `puppet_last_run_summary_valid`
 
-Whether `last_run_summary.yaml` was parsed and interpreted successfully.
+Whether `last_run_summary.yaml` was parsed and interpreted successfully. A
+valid summary must contain `events.failure`, `resources.failed`, and
+`time.last_run`; a readable summary missing any of these fields is invalid.
 
 ### Source Freshness and Duration
 

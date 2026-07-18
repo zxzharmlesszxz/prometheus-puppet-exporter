@@ -1,5 +1,7 @@
 package puppetcheck
 
+import "errors"
+
 type runSummary struct {
 	Changes   Changes            `yaml:"changes"`
 	Events    map[string]float64 `yaml:"events"`
@@ -18,6 +20,19 @@ func (r runSummary) empty() bool {
 		len(r.Durations) == 0 &&
 		r.Versions == (Versions{}) &&
 		r.Changes == (Changes{})
+}
+
+func (r runSummary) validate() error {
+	if _, ok := r.Events["failure"]; !ok {
+		return errors.New("summary events.failure is required")
+	}
+	if _, ok := r.Resources["failed"]; !ok {
+		return errors.New("summary resources.failed is required")
+	}
+	if _, ok := r.Durations["last_run"]; !ok {
+		return errors.New("summary time.last_run is required")
+	}
+	return nil
 }
 
 func (r runSummary) interpret() SummarySnapshot {
