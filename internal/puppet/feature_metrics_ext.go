@@ -38,10 +38,7 @@ func LogFeatureSnapshotError(_ featurekit.FeatureMetricsContext[Snapshot], logge
 }
 
 func collectConfigMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureMetricDescriptors, snapshot puppetcheck.ConfigSnapshot) {
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricConfigMTime), prometheus.GaugeValue, snapshot.MTimeSeconds)
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricConfigReadErrors), prometheus.CounterValue, float64(snapshot.ReadErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricConfigParseErrors), prometheus.CounterValue, float64(snapshot.ParseErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricConfigScrapeDuration), prometheus.GaugeValue, snapshot.ScrapeDurationSeconds)
+	collectSourceMetrics(ch, metrics, configSourceMetricIDs, snapshot.MTimeSeconds, snapshot.ReadErrorsTotal, snapshot.ParseErrorsTotal, snapshot.ScrapeDurationSeconds)
 	if snapshot.Up && snapshot.Valid {
 		ch <- prometheus.MustNewConstMetric(
 			metrics.Get(metricConfig),
@@ -57,20 +54,14 @@ func collectConfigMetrics(ch chan<- prometheus.Metric, metrics featurekit.Featur
 }
 
 func collectLockMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureMetricDescriptors, snapshot puppetcheck.LockSnapshot) {
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockMTime), prometheus.GaugeValue, snapshot.MTimeSeconds)
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockReadErrors), prometheus.CounterValue, float64(snapshot.ReadErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockParseErrors), prometheus.CounterValue, float64(snapshot.ParseErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockScrapeDuration), prometheus.GaugeValue, snapshot.ScrapeDurationSeconds)
+	collectSourceMetrics(ch, metrics, lockSourceMetricIDs, snapshot.MTimeSeconds, snapshot.ReadErrorsTotal, snapshot.ParseErrorsTotal, snapshot.ScrapeDurationSeconds)
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentDisabled), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid && snapshot.Disabled), disabledMessage(snapshot))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockStateUp), prometheus.GaugeValue, framework.BoolFloat(snapshot.Up))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockStateValid), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid))
 }
 
 func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureMetricDescriptors, snapshot puppetcheck.SummarySnapshot) {
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryMTime), prometheus.GaugeValue, snapshot.MTimeSeconds)
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryReadErrors), prometheus.CounterValue, float64(snapshot.ReadErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryParseErrors), prometheus.CounterValue, float64(snapshot.ParseErrorsTotal))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryScrapeDuration), prometheus.GaugeValue, snapshot.ScrapeDurationSeconds)
+	collectSourceMetrics(ch, metrics, summarySourceMetricIDs, snapshot.MTimeSeconds, snapshot.ReadErrorsTotal, snapshot.ParseErrorsTotal, snapshot.ScrapeDurationSeconds)
 	if snapshot.Valid {
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Catalog, "CatalogVersion")
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Puppet, "PuppetVersion")
@@ -85,6 +76,43 @@ func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.Featu
 	}
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryUp), prometheus.GaugeValue, framework.BoolFloat(snapshot.Up))
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryValid), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid))
+}
+
+type sourceMetricIDs struct {
+	mtime          string
+	readErrors     string
+	parseErrors    string
+	scrapeDuration string
+}
+
+var (
+	configSourceMetricIDs  = newSourceMetricIDs(metricConfigMTime, metricConfigReadErrors, metricConfigParseErrors, metricConfigScrapeDuration)
+	lockSourceMetricIDs    = newSourceMetricIDs(metricAgentLockMTime, metricAgentLockReadErrors, metricAgentLockParseErrors, metricAgentLockScrapeDuration)
+	summarySourceMetricIDs = newSourceMetricIDs(metricLastRunSummaryMTime, metricLastRunSummaryReadErrors, metricLastRunSummaryParseErrors, metricLastRunSummaryScrapeDuration)
+)
+
+func newSourceMetricIDs(mtime, readErrors, parseErrors, scrapeDuration string) sourceMetricIDs {
+	return sourceMetricIDs{
+		mtime:          mtime,
+		readErrors:     readErrors,
+		parseErrors:    parseErrors,
+		scrapeDuration: scrapeDuration,
+	}
+}
+
+func collectSourceMetrics(
+	ch chan<- prometheus.Metric,
+	metrics featurekit.FeatureMetricDescriptors,
+	ids sourceMetricIDs,
+	mtime float64,
+	readErrors uint64,
+	parseErrors uint64,
+	scrapeDuration float64,
+) {
+	ch <- prometheus.MustNewConstMetric(metrics.Get(ids.mtime), prometheus.GaugeValue, mtime)
+	ch <- prometheus.MustNewConstMetric(metrics.Get(ids.readErrors), prometheus.CounterValue, float64(readErrors))
+	ch <- prometheus.MustNewConstMetric(metrics.Get(ids.parseErrors), prometheus.CounterValue, float64(parseErrors))
+	ch <- prometheus.MustNewConstMetric(metrics.Get(ids.scrapeDuration), prometheus.GaugeValue, scrapeDuration)
 }
 
 func collectNamedMetrics(ch chan<- prometheus.Metric, desc *prometheus.Desc, values map[string]float64) {
