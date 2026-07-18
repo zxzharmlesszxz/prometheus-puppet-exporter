@@ -1,0 +1,94 @@
+rule_files:
+  - ../prometheus-puppet-exporter.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: Puppet run problems retain their domain labels and values
+    interval: 1m
+    input_series:
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="node-1"}'
+        values: '1x20'
+      - series: 'puppet_resources{job="puppet_exporter",instance="node-1",name="failed"}'
+        values: '2x20'
+      - series: 'puppet_events{job="puppet_exporter",instance="node-1",name="failure"}'
+        values: '3x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: PuppetResourceProblems
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: node-1
+              name: failed
+            exp_annotations:
+              summary: Puppet resource problems on node-1
+              description: |
+                The latest Puppet run for node-1 reports failed=2.
+      - eval_time: 16m
+        alertname: PuppetEventFailures
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: node-1
+              name: failure
+            exp_annotations:
+              summary: Puppet event failures on node-1
+              description: |
+                The latest Puppet run for node-1 reports 3 failed events.
+
+  - name: Only stale numeric catalog versions alert
+    interval: 1m
+    input_series:
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="stale-node"}'
+        values: '1x121'
+      - series: 'puppet_catalog_version_timestamp_seconds{job="puppet_exporter",instance="stale-node"}'
+        values: '1x121'
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="fresh-node"}'
+        values: '1x121'
+      - series: 'puppet_catalog_version_timestamp_seconds{job="puppet_exporter",instance="fresh-node"}'
+        values: '7200x121'
+    alert_rule_test:
+      - eval_time: 2h
+        alertname: PuppetCatalogVersionStale
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: stale-node
+            exp_annotations:
+              summary: Puppet catalog version is stale on stale-node
+              description: |
+                The Puppet catalog version timestamp for stale-node is older than 1 hour.
+
+  - name: Disabled agents and unavailable exporters alert after their hold times
+    interval: 1m
+    input_series:
+      - series: 'puppet_agent_disabled{job="puppet_exporter",instance="disabled-node",message=""}'
+        values: '1x20'
+      - series: 'up{job="puppet_exporter",instance="down-node"}'
+        values: '0x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: PuppetAgentDisabled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: disabled-node
+            exp_annotations:
+              summary: Puppet agent is disabled on disabled-node
+              description: "The Puppet agent on disabled-node is disabled. Message: \n"
+      - eval_time: 6m
+        alertname: PuppetExporterDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: down-node
+            exp_annotations:
+              summary: Puppet exporter target is down on down-node
+              description: |
+                Prometheus has been unable to scrape prometheus-puppet-exporter on down-node for at least 5 minutes.

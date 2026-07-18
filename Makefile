@@ -1,6 +1,6 @@
 include Makefile.mk
 
-.PHONY: help build release release-archives release-checksums release-smoke docker-build docker-buildx docker-buildx-push docker-push fmt fmt-check vet staticcheck test test-race coverage coverage-check smoke promtool-check compose compose-up compose-down compose-logs compose-config examples-check docker-smoke-build docker-smoke-image docker-smoke go-check check full-check clean size
+.PHONY: help build release release-archives release-checksums release-smoke docker-build docker-buildx docker-buildx-push docker-push fmt fmt-check vet staticcheck test test-race coverage coverage-check smoke promtool-check promtool-rules-test compose compose-up compose-down compose-logs compose-config examples-check docker-smoke-build docker-smoke-image docker-smoke go-check check full-check clean size
 .SILENT: compose compose-config compose-down compose-logs compose-up size
 
 help: ## Show available make targets.
@@ -128,6 +128,9 @@ docker-push: ## Push the Docker image.
 promtool-check: ## Validate the Prometheus config and rules used by Docker Compose.
 	$(MAKE) compose COMPOSE_ARGS="run --rm --no-deps --entrypoint promtool prometheus check config /etc/prometheus/prometheus.yml"
 
+promtool-rules-test: ## Test the behavior of the bundled Prometheus alert rules.
+	$(MAKE) compose COMPOSE_ARGS="run --rm --no-deps --workdir /etc/prometheus/rules/tests --entrypoint promtool prometheus test rules prometheus-puppet-exporter.test.yml"
+
 compose: ## Run Docker Compose with Makefile.mk variables. Override COMPOSE_ARGS as needed.
 	COMPOSE_PROJECT_NAME="$(COMPOSE_PROJECT_NAME)" \
 	PROJECT_NAME="$(PROJECT_NAME)" \
@@ -152,7 +155,7 @@ compose-logs: ## Follow Docker Compose logs.
 compose-config: ## Validate the Docker Compose example.
 	$(MAKE) compose COMPOSE_ARGS="config >/dev/null"
 
-examples-check: promtool-check compose-config ## Validate shipped Prometheus and Compose examples.
+examples-check: promtool-check promtool-rules-test compose-config ## Validate shipped Prometheus and Compose examples.
 
 docker-smoke-build: ## Build the Docker image used by docker-smoke.
 	$(MAKE) docker-build \

@@ -193,6 +193,9 @@ Example Prometheus alert rules live in [`examples/prometheus/prometheus-puppet-e
 They cover exporter scrape availability, framework collection failure,
 source read/validity failures, stale Puppet data, failed Puppet runs, resource
 problems, event failures, disabled agents, and read/parse counter spikes.
+The bundled exporter-down rule and Grafana job variable expect the scrape job
+name to match `^(prometheus[_-])?puppet[_-]exporter$`; adapt that matcher when
+using another job naming convention.
 
 ## Grafana Dashboards
 
