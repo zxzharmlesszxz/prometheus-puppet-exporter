@@ -109,7 +109,7 @@ jobs:
           go-version: '1.26.5'
 
       - name: Build Release Archives
-        run: make release-smoke
+        run: make release-smoke PLATFORMS="${RELEASE_PLATFORMS}"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
