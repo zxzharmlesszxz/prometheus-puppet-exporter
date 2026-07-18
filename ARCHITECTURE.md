@@ -125,7 +125,7 @@ The bundled Prometheus rules cover:
 - critical resource states: `failed`, `failed_to_restart`, and `out_of_sync`
 - event failures via `puppet_events{name="failure"}`
 - disabled Puppet agents
-- read/parse counter increases over a 30 minute window
+- read/parse counter increases over a 30-minute window
 
 ## Testing Strategy
 
