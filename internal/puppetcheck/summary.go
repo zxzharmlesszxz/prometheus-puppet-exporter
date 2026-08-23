@@ -3,6 +3,7 @@ package puppetcheck
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"time"
 )
@@ -104,8 +105,6 @@ func copyMetricMap(src map[string]float64) map[string]float64 {
 	}
 
 	dst := make(map[string]float64, len(src))
-	for key, value := range src {
-		dst[key] = value
-	}
+	maps.Copy(dst, src)
 	return dst
 }
