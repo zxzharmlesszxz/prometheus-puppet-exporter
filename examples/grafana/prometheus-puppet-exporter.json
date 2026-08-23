@@ -7096,12 +7096,12 @@
             "group": "prometheus",
             "kind": "DataQuery",
             "spec": {
-              "query": "label_values(up{job=~\".*puppet.*exporter.*\"}, job)",
+              "query": "label_values(up{job=~\"^(prometheus[_-])?puppet[_-]exporter$\"}, job)",
               "refId": "StandardVariableQuery"
             },
             "version": "v0"
           },
-          "definition": "label_values(up{job=~\".*puppet.*exporter.*\"}, job)",
+          "definition": "label_values(up{job=~\"^(prometheus[_-])?puppet[_-]exporter$\"}, job)",
           "refresh": "onDashboardLoad",
           "regex": "",
           "current": {
@@ -7111,7 +7111,7 @@
           "options": [],
           "multi": true,
           "includeAll": true,
-          "allValue": ".*puppet.*exporter.*",
+          "allValue": "^(prometheus[_-])?puppet[_-]exporter$",
           "sort": "alphabeticalAsc",
           "hide": "dontHide",
           "skipUrlSync": false,

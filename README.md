@@ -198,7 +198,7 @@ They cover exporter scrape availability, framework collection failure,
 source read/validity failures, stale Puppet data, failed Puppet runs, resource
 problems, event failures, disabled agents, and read/parse counter spikes.
 The bundled exporter-down rule and Grafana job variable select scrape jobs
-whose names match `.*puppet.*exporter.*`; adapt that matcher when using a
+whose names match `^(prometheus[_-])?puppet[_-]exporter$`; adapt that matcher when using a
 different naming convention.
 
 ## Grafana Dashboards

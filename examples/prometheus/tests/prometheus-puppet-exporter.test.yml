@@ -74,7 +74,7 @@ tests:
     input_series:
       - series: 'puppet_agent_disabled{job="puppet_exporter",instance="disabled-node",message=""}'
         values: '1x20'
-      - series: 'up{job="production-puppet-exporter-eu",instance="down-node"}'
+      - series: 'up{job="puppet_exporter",instance="down-node"}'
         values: '0x20'
     alert_rule_test:
       - eval_time: 16m
@@ -92,7 +92,7 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: critical
-              job: production-puppet-exporter-eu
+              job: puppet_exporter
               instance: down-node
             exp_annotations:
               summary: Puppet exporter target is down on down-node
