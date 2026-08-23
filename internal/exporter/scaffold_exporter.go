@@ -22,6 +22,10 @@ func Main() {
 	mainFromInjectedProject(newFeature(metadata.FeatureName))
 }
 
-func ExporterInfo() framework.ExporterInfo {
+func Info() framework.ExporterInfo {
 	return framework.ExporterInfoFromInjectedProject(NewFeature())
+}
+
+func InfoErr() (framework.ExporterInfo, error) {
+	return framework.ExporterInfoFromInjectedProjectErr(NewFeature())
 }

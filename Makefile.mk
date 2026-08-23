@@ -3,7 +3,7 @@ FRAMEWORK_MODULE ?= github.com/zxzharmlesszxz/prometheus-exporter-framework
 GO ?= go
 GOFMT ?= gofmt
 DOCKER ?= docker
-STATICCHECK_VERSION ?= v0.7.0
+STATICCHECK_VERSION ?= v0.8.1
 STATICCHECK ?= $(GO) run honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)
 STATICCHECK_GOFLAGS ?= -buildvcs=false
 COVERAGE_PROFILE ?= coverage.out
@@ -48,6 +48,7 @@ DOCKER_SMOKE_METRIC ?= puppet_last_run_summary_up 1
 DOCKER_SMOKE_RUN_OPTIONS ?= -v "$(CURDIR)/$(FEATURE_CONFIG_PATH):$(FEATURE_CONFIG_CONTAINER_PATH):ro" -v "$(CURDIR)/testdata:/testdata:ro"
 DOCKER_SMOKE_EXPORTER_ARGS ?= --$(FEATURE_NAME).config-file=$(FEATURE_CONFIG_CONTAINER_PATH) --$(FEATURE_NAME).config-path=/testdata/puppet.conf --$(FEATURE_NAME).lock-path=/testdata/agent_disabled.lock --$(FEATURE_NAME).summary-path=/testdata/last_run_summary.yaml
 DOCKER_SMOKE_EXTRA_METRICS ?= puppet_config_up 1|puppet_agent_lock_state_up 1
+DOCKER_SMOKE_PORT ?= 9900
 DOCKER_SMOKE_EXPECTED_VERSION ?= $(VERSION)
 DOCKER_SMOKE_EXPECTED_BRANCH ?= $(BRANCH)
 DOCKER_SMOKE_EXPECTED_REVISION ?= $(REVISION)
@@ -56,6 +57,10 @@ DOCKER_COMPOSE ?= $(DOCKER) compose
 COMPOSE_ARGS ?= up --build
 COMPOSE_PROJECT_NAME ?= $(PROJECT_NAME)
 COMPOSE_EXPORTER_PORT ?= $(patsubst :%,%,$(DEFAULT_PORT))
+PROMETHEUS_IMAGE ?= prom/prometheus:v3.13.1
+GRAFANA_IMAGE ?= grafana/grafana:13.0.3
+GRAFANA_ADMIN_USER ?= admin
+GRAFANA_ADMIN_PASSWORD ?= admin
 SMOKE_DOCKER_IMAGE ?= $(PROJECT_NAME):smoke
 SMOKE_VERSION ?= v9.8.7
 SMOKE_BRANCH ?= smoke-branch
