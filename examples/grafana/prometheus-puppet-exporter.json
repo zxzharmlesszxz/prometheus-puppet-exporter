@@ -565,6 +565,11 @@
                         "Time 3": true,
                         "Time 4": true,
                         "Time 5": true,
+                        "environment 1": true,
+                        "environment 2": true,
+                        "environment 3": true,
+                        "environment 4": true,
+                        "environment 5": true,
                         "Value": true,
                         "Value #A": true,
                         "__name__": true,
@@ -3294,8 +3299,8 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "{job=~\"$job\", __name__=~\"puppet.*_(up|valid)\"}",
-                        "legendFormat": "{{__name__}} {{path}} {{source}} {{instance}}",
+                        "expr": "label_replace({job=~\"$job\", __name__=~\"puppet.*_(up|valid)\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_(up|valid)\")",
+                        "legendFormat": "{{source}} {{instance}}",
                         "range": true,
                         "instant": false
                       }
@@ -3412,8 +3417,8 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "time() - {job=~\"$job\", __name__=~\"puppet.*_mtime_seconds\"}",
-                        "legendFormat": "{{__name__}} {{path}} {{source}} {{instance}}",
+                        "expr": "time() - label_replace({job=~\"$job\", __name__=~\"puppet.*_mtime_seconds\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_mtime_seconds\")",
+                        "legendFormat": "{{source}} {{instance}}",
                         "range": true,
                         "instant": false
                       }
@@ -3530,8 +3535,8 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "{job=~\"$job\", __name__=~\"puppet.*_scrape_duration_seconds\"}",
-                        "legendFormat": "{{__name__}} {{path}} {{source}} {{instance}}",
+                        "expr": "label_replace({job=~\"$job\", __name__=~\"puppet.*_scrape_duration_seconds\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_scrape_duration_seconds\")",
+                        "legendFormat": "{{source}} {{instance}}",
                         "range": true,
                         "instant": false
                       }
@@ -3648,8 +3653,8 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(rate({job=~\"$job\", __name__=~\"puppet.*_read_errors_total\"}[5m]), \"error_type\", \"read\", \"job\", \".*\") or label_replace(rate({job=~\"$job\", __name__=~\"puppet.*_parse_errors_total\"}[5m]), \"error_type\", \"parse\", \"job\", \".*\")",
-                        "legendFormat": "{{error_type}} {{path}} {{source}} {{instance}}",
+                        "expr": "label_replace(rate(label_replace({job=~\"$job\", __name__=~\"puppet_.*_read_errors_total\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_read_errors_total\")[5m:]), \"error_type\", \"read\", \"job\", \".*\") or label_replace(rate(label_replace({job=~\"$job\", __name__=~\"puppet_.*_parse_errors_total\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_parse_errors_total\")[5m:]), \"error_type\", \"parse\", \"job\", \".*\")",
+                        "legendFormat": "{{error_type}} {{source}} {{instance}}",
                         "range": true,
                         "instant": false
                       }
@@ -3812,15 +3817,11 @@
                     "steps": [
                       {
                         "value": 0,
-                        "color": "green"
+                        "color": "red"
                       },
                       {
                         "value": 1,
-                        "color": "orange"
-                      },
-                      {
-                        "value": 5,
-                        "color": "red"
+                        "color": "green"
                       }
                     ]
                   },
@@ -4450,7 +4451,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "puppet_agent_disabled{job=~\"$job\"}",
+                        "expr": "label_replace(puppet_agent_disabled{job=~\"$job\"}, \"message\", \" \", \"message\", \"^$\")",
                         "legendFormat": "__auto",
                         "range": false,
                         "instant": true,
@@ -4615,6 +4616,16 @@
                         "puppet_environment 7": true,
                         "puppet_environment 8": true,
                         "puppet_environment 9": true,
+                        "environment 1": true,
+                        "environment 2": true,
+                        "environment 3": true,
+                        "environment 4": true,
+                        "environment 5": true,
+                        "environment 6": true,
+                        "environment 7": true,
+                        "environment 8": true,
+                        "environment 9": true,
+                        "environment 10": true,
                         "puppet_certname 1": true,
                         "puppet_certname 2": true,
                         "puppet_certname 3": true,
@@ -5913,146 +5924,6 @@
           }
         }
       },
-      "panel-43": {
-        "kind": "Panel",
-        "spec": {
-          "id": 43,
-          "title": "Source Error Rate",
-          "description": "Read/parse error counter rate over five minutes.",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "prometheus",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "${DS_PROMETHEUS}"
-                      },
-                      "spec": {
-                        "editorMode": "code",
-                        "expr": "label_replace(rate({job=~\"$job\", __name__=~\"puppet.*_read_errors_total\"}[5m]), \"error_type\", \"read\", \"job\", \".*\")",
-                        "legendFormat": "{{error_type}} {{__name__}} {{instance}}",
-                        "range": true,
-                        "instant": false
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "prometheus",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "${DS_PROMETHEUS}"
-                      },
-                      "spec": {
-                        "editorMode": "code",
-                        "expr": "label_replace(rate({job=~\"$job\", __name__=~\"puppet.*_parse_errors_total\"}[5m]), \"error_type\", \"parse\", \"job\", \".*\")",
-                        "legendFormat": "{{error_type}} {{__name__}} {{instance}}",
-                        "range": true,
-                        "instant": false
-                      }
-                    },
-                    "refId": "B",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "timeseries",
-            "version": "13.0.1",
-            "spec": {
-              "options": {
-                "annotations": {
-                  "clustering": -1,
-                  "multiLane": false
-                },
-                "legend": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "none"
-                }
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "ops",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "palette-classic"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
-      },
       "panel-44": {
         "kind": "Panel",
         "spec": {
@@ -6714,7 +6585,7 @@
                         "layout": {
                           "kind": "AutoGridLayout",
                           "spec": {
-                            "maxColumnCount": 3,
+                            "maxColumnCount": 2,
                             "columnWidthMode": "standard",
                             "rowHeightMode": "standard",
                             "items": [
@@ -6733,15 +6604,6 @@
                                   "element": {
                                     "kind": "ElementReference",
                                     "name": "panel-42"
-                                  }
-                                }
-                              },
-                              {
-                                "kind": "AutoGridLayoutItem",
-                                "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
-                                    "name": "panel-43"
                                   }
                                 }
                               }
@@ -7133,33 +6995,6 @@
           "skipUrlSync": false,
           "allowCustomValue": true,
           "enableGroupBy": false
-        }
-      },
-      {
-        "kind": "Variable",
-        "spec": {
-          "current": {},
-          "datasource": {
-            "name": "${DS_PROMETHEUS}"
-          },
-          "definition": "label_values(up{job=~\"$job\"}, instance)",
-          "hide": 0,
-          "includeAll": true,
-          "multi": true,
-          "name": "instance",
-          "options": [],
-          "query": {
-            "kind": "DataQuery",
-            "group": "prometheus",
-            "version": "v0",
-            "spec": {
-              "expr": "label_values(up{job=~\"$job\"}, instance)"
-            }
-          },
-          "refresh": 2,
-          "skipUrlSync": false,
-          "sort": 1,
-          "type": "query"
         }
       }
     ],
