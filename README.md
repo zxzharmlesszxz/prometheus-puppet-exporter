@@ -190,6 +190,9 @@ make full-check
 ```
 
 `make go-check` runs Go-only checks. `make check` also validates the Prometheus and Docker Compose examples, so it requires Docker.
+Scaffold-owned project values live in `Makefile.mk`, while overridable tool and
+build defaults live in `Makefile.defaults.mk`. Put persistent local overrides
+in the ignored `Makefile.local` file.
 
 ## Alert Rules
 

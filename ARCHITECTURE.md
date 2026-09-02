@@ -16,9 +16,9 @@
   `featurekit.SnapshotFeatureExtension` assembly and wires config-file flags,
   runtime config, collector construction, metrics, snapshot status, and smoke
   behavior through Puppet-specific hooks.
-  `snapshot_types.go` is the scaffold-managed `Snapshot` struct that wraps
-  `internal/puppetcheck.Snapshot`, but it is feature-owned after generation
-  so a concrete exporter can replace it with an aggregate snapshot.
+  `snapshot_types.go` starts as a generated `Snapshot` struct that wraps
+  `internal/puppetcheck.Snapshot`, but it is feature-owned after generation so
+  a concrete exporter can replace it with an aggregate snapshot.
   Feature-specific defaults and hook functions live in adjacent feature files:
   `feature_config_ext.go`, `feature_metrics_ext.go`,
   `feature_snapshotter_ext.go`, and `feature_smoke_ext.go`.
