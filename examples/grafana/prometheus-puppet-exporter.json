@@ -5496,6 +5496,1215 @@
           }
         }
       },
+      "panel-46": {
+        "kind": "Panel",
+        "spec": {
+          "id": 46,
+          "title": "Puppet Inventory",
+          "description": "Puppet agent inventory with current health and problem indicators.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_config{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_exporter_build_info{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_version_info{job=~\"$job\",name=\"PuppetVersion\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_resources{job=~\"$job\",name=\"failed\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "D",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "time() - puppet_last_run_timestamp_seconds{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "E",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_success{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "F",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "label_replace(puppet_agent_disabled{job=~\"$job\"}, \"message\", \" \", \"message\", \"^$\")",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "G",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_config_valid{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "H",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_agent_lock_state_valid{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "I",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_summary_valid{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "J",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_summary_data_available{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "K",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_summary_data_stale{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "L",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "joinByField",
+                  "spec": {
+                    "options": {
+                      "byField": "instance",
+                      "mode": "outer"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "filterFieldsByName",
+                  "spec": {
+                    "options": {
+                      "include": {
+                        "names": [
+                          "instance",
+                          "puppet_certname",
+                          "puppet_environment",
+                          "puppet_server",
+                          "value",
+                          "Value #D",
+                          "Value #E",
+                          "Value #F",
+                          "Value #G",
+                          "Value #H",
+                          "Value #I",
+                          "Value #J",
+                          "Value #K",
+                          "Value #L",
+                          "message"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "Time 1": true,
+                        "Time 2": true,
+                        "Time 3": true,
+                        "Time 4": true,
+                        "Time 5": true,
+                        "Time 6": true,
+                        "Time 7": true,
+                        "Time 8": true,
+                        "Time 9": true,
+                        "__name__": true,
+                        "__name__ 1": true,
+                        "__name__ 2": true,
+                        "__name__ 3": true,
+                        "__name__ 4": true,
+                        "__name__ 5": true,
+                        "__name__ 6": true,
+                        "__name__ 7": true,
+                        "__name__ 8": true,
+                        "__name__ 9": true,
+                        "job": true,
+                        "job 1": true,
+                        "job 2": true,
+                        "job 3": true,
+                        "job 4": true,
+                        "job 5": true,
+                        "job 6": true,
+                        "job 7": true,
+                        "job 8": true,
+                        "job 9": true,
+                        "name": true,
+                        "name 1": true,
+                        "name 2": true,
+                        "name 3": true,
+                        "name 4": true,
+                        "name 5": true,
+                        "name 6": true,
+                        "name 7": true,
+                        "name 8": true,
+                        "name 9": true,
+                        "instance 1": true,
+                        "instance 2": true,
+                        "instance 3": true,
+                        "instance 4": true,
+                        "instance 5": true,
+                        "instance 6": true,
+                        "instance 7": true,
+                        "instance 8": true,
+                        "instance 9": true,
+                        "puppet_server 1": true,
+                        "puppet_server 2": true,
+                        "puppet_server 3": true,
+                        "puppet_server 4": true,
+                        "puppet_server 5": true,
+                        "puppet_server 6": true,
+                        "puppet_server 7": true,
+                        "puppet_server 8": true,
+                        "puppet_server 9": true,
+                        "puppet_environment 1": true,
+                        "puppet_environment 2": true,
+                        "puppet_environment 3": true,
+                        "puppet_environment 4": true,
+                        "puppet_environment 5": true,
+                        "puppet_environment 6": true,
+                        "puppet_environment 7": true,
+                        "puppet_environment 8": true,
+                        "puppet_environment 9": true,
+                        "environment 1": true,
+                        "environment 2": true,
+                        "environment 3": true,
+                        "environment 4": true,
+                        "environment 5": true,
+                        "environment 6": true,
+                        "environment 7": true,
+                        "environment 8": true,
+                        "environment 9": true,
+                        "environment 10": true,
+                        "environment 11": true,
+                        "environment 12": true,
+                        "puppet_certname 1": true,
+                        "puppet_certname 2": true,
+                        "puppet_certname 3": true,
+                        "puppet_certname 4": true,
+                        "puppet_certname 5": true,
+                        "puppet_certname 6": true,
+                        "puppet_certname 7": true,
+                        "puppet_certname 8": true,
+                        "puppet_certname 9": true,
+                        "value 1": true,
+                        "value 2": true,
+                        "value 3": true,
+                        "value 4": true,
+                        "value 5": true,
+                        "value 6": true,
+                        "value 7": true,
+                        "value 8": true,
+                        "value 9": true,
+                        "message 1": true,
+                        "message 2": true,
+                        "message 3": true,
+                        "message 4": true,
+                        "message 5": true,
+                        "message 6": true,
+                        "message 7": true,
+                        "message 8": true,
+                        "message 9": true,
+                        "Value": true,
+                        "Value #A": true,
+                        "Value #B": true,
+                        "Time 10": true,
+                        "Time 11": true,
+                        "Time 12": true,
+                        "__name__ 10": true,
+                        "__name__ 11": true,
+                        "job 10": true,
+                        "job 11": true,
+                        "job 12": true,
+                        "name 10": true,
+                        "name 11": true,
+                        "instance 10": true,
+                        "instance 11": true,
+                        "puppet_server 10": true,
+                        "puppet_server 11": true,
+                        "puppet_environment 10": true,
+                        "puppet_environment 11": true,
+                        "puppet_certname 10": true,
+                        "puppet_certname 11": true,
+                        "value 10": true,
+                        "value 11": true,
+                        "message 10": true,
+                        "message 11": true,
+                        "version 1": true,
+                        "version 2": true,
+                        "version 3": true,
+                        "version 4": true,
+                        "version 5": true,
+                        "version 6": true,
+                        "version 7": true,
+                        "version 8": true,
+                        "version 9": true,
+                        "version 10": true,
+                        "version 11": true,
+                        "revision 1": true,
+                        "revision 2": true,
+                        "revision 3": true,
+                        "revision 4": true,
+                        "revision 5": true,
+                        "revision 6": true,
+                        "revision 7": true,
+                        "revision 8": true,
+                        "revision 9": true,
+                        "revision 10": true,
+                        "revision 11": true,
+                        "branch 1": true,
+                        "branch 2": true,
+                        "branch 3": true,
+                        "branch 4": true,
+                        "branch 5": true,
+                        "branch 6": true,
+                        "branch 7": true,
+                        "branch 8": true,
+                        "branch 9": true,
+                        "branch 10": true,
+                        "branch 11": true,
+                        "goversion 1": true,
+                        "goversion 2": true,
+                        "goversion 3": true,
+                        "goversion 4": true,
+                        "goversion 5": true,
+                        "goversion 6": true,
+                        "goversion 7": true,
+                        "goversion 8": true,
+                        "goversion 9": true,
+                        "goversion 10": true,
+                        "goversion 11": true,
+                        "go_version 1": true,
+                        "go_version 2": true,
+                        "go_version 3": true,
+                        "go_version 4": true,
+                        "go_version 5": true,
+                        "go_version 6": true,
+                        "go_version 7": true,
+                        "go_version 8": true,
+                        "go_version 9": true,
+                        "go_version 10": true,
+                        "go_version 11": true,
+                        "goos 1": true,
+                        "goos 2": true,
+                        "goos 3": true,
+                        "goos 4": true,
+                        "goos 5": true,
+                        "goos 6": true,
+                        "goos 7": true,
+                        "goos 8": true,
+                        "goos 9": true,
+                        "goos 10": true,
+                        "goos 11": true,
+                        "goarch 1": true,
+                        "goarch 2": true,
+                        "goarch 3": true,
+                        "goarch 4": true,
+                        "goarch 5": true,
+                        "goarch 6": true,
+                        "goarch 7": true,
+                        "goarch 8": true,
+                        "goarch 9": true,
+                        "goarch 10": true,
+                        "goarch 11": true,
+                        "build_user 1": true,
+                        "build_user 2": true,
+                        "build_user 3": true,
+                        "build_user 4": true,
+                        "build_user 5": true,
+                        "build_user 6": true,
+                        "build_user 7": true,
+                        "build_user 8": true,
+                        "build_user 9": true,
+                        "build_user 10": true,
+                        "build_user 11": true,
+                        "build_date 1": true,
+                        "build_date 2": true,
+                        "build_date 3": true,
+                        "build_date 4": true,
+                        "build_date 5": true,
+                        "build_date 6": true,
+                        "build_date 7": true,
+                        "build_date 8": true,
+                        "build_date 9": true,
+                        "build_date 10": true,
+                        "build_date 11": true,
+                        "Value #C": true,
+                        "branch": true,
+                        "goarch": true,
+                        "goos": true,
+                        "goversion": true,
+                        "go_version": true,
+                        "revision": true,
+                        "tags": true,
+                        "tags 1": true,
+                        "tags 2": true,
+                        "tags 3": true,
+                        "tags 4": true,
+                        "tags 5": true,
+                        "tags 6": true,
+                        "tags 7": true,
+                        "tags 8": true,
+                        "tags 9": true,
+                        "tags 10": true,
+                        "tags 11": true,
+                        "build_user": true,
+                        "build_date": true
+                      },
+                      "includeByName": {},
+                      "indexByName": {
+                        "instance": 0,
+                        "version": 1,
+                        "puppet_certname": 2,
+                        "puppet_environment": 3,
+                        "puppet_server": 4,
+                        "value": 5,
+                        "Value #D": 6,
+                        "Value #E": 7,
+                        "Value #F": 8,
+                        "Value #G": 9,
+                        "Value #H": 10,
+                        "Value #I": 11,
+                        "Value #J": 12,
+                        "Value #K": 13,
+                        "Value #L": 14,
+                        "message": 15
+                      },
+                      "orderByMode": "manual",
+                      "renameByName": {
+                        "version": "Exporter",
+                        "puppet_certname": "Certname",
+                        "puppet_environment": "Environment",
+                        "puppet_server": "Puppet server",
+                        "value": "Version",
+                        "Value #D": "Failed",
+                        "Value #E": "Last run",
+                        "Value #F": "Works",
+                        "Value #G": "Disabled",
+                        "Value #H": "Config ↑",
+                        "Value #I": "Lock",
+                        "Value #J": "Summary",
+                        "Value #K": "LKG",
+                        "Value #L": "LKG stale",
+                        "message": "Message"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "13.0.1",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "enablePagination": false,
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": false,
+                    "displayName": "instance"
+                  }
+                ]
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true,
+                    "footer": {
+                      "reducers": []
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "instance"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 190
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Exporter"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 100
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Certname"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 190
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Environment"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 110
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Puppet server"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 170
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Version"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Failed"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "green"
+                            },
+                            {
+                              "value": 1,
+                              "color": "red"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Last run"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "green"
+                            },
+                            {
+                              "value": 7200,
+                              "color": "red"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-background"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 105
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Works"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Failed",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "OK",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Disabled"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Enabled",
+                                "color": "green"
+                              },
+                              "1": {
+                                "text": "Disabled",
+                                "color": "red"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "green"
+                            },
+                            {
+                              "value": 1,
+                              "color": "red"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 105
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Config ↑"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Failed",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "OK",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 85
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Lock"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Failed",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "OK",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 75
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "Summary"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Failed",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "OK",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "LKG"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Missing",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Available",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "LKG stale"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Fresh",
+                                "color": "green"
+                              },
+                              "1": {
+                                "text": "Stale",
+                                "color": "red"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "green"
+                            },
+                            {
+                              "value": 1,
+                              "color": "red"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 95
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
       "panel-38": {
         "kind": "Panel",
         "spec": {
@@ -6848,6 +8057,32 @@
                               }
                             ]
                           }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "title": "Inventory",
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "maxColumnCount": 1,
+                  "columnWidthMode": "wide",
+                  "rowHeightMode": "tall",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-46"
                         }
                       }
                     }
