@@ -50,13 +50,16 @@ them through the scaffold sync flow only.
 5. `framework.SnapshotCollector` refreshes data in a background worker every `--puppet.refresh-interval`; scrapes read the latest completed snapshot.
 6. The feature snapshotter delegates backing-file reads to `internal/puppetcheck`.
 7. A single background snapshot collector refreshes all three backing files.
-8. Prometheus scrapes expose the latest successful or failed composite snapshot.
+8. The feature stores the latest valid run summary in
+   `featurekit.LastKnownGood`; Prometheus scrapes expose current source health
+   together with the retained summary state.
 9. If a source cannot be read, the collector emits that source's `*_up`
    metric as `0`.
 10. If a source is readable but invalid, the collector emits that source's
     `*_up` metric as `1` and its `*_valid` metric as `0`.
-11. Config and summary business metrics are omitted when their source is
-    invalid.
+11. Config business metrics are omitted when their source is invalid. Summary
+    business metrics use the latest valid summary while summary `up` and
+    `valid` metrics continue to describe the current attempt.
 12. Lock state still emits `puppet_agent_disabled{message=""} 0` on source
     errors so the lock-state metric remains present, while
     `puppet_agent_lock_state_up` and `puppet_agent_lock_state_valid` expose the
@@ -68,9 +71,13 @@ the disabled state.
 
 ## Failure Semantics
 
-If refresh fails before the first successful snapshot, the exporter exposes collection health metrics, but no business metrics.
+If summary refresh fails before the first valid summary, the exporter exposes
+source and collection health metrics, but no summary-derived business metrics.
 
-If the latest refresh fails, the exporter exposes collection health metrics, but no business metrics, and sets:
+If a later summary refresh fails, the exporter retains its last-known-good
+summary business metrics and increments the consecutive-failure state. The
+retained data becomes stale after two hours without a valid summary. A failed
+composite refresh also sets:
 
 - `puppet_exporter_last_collection_success = 0`
 
@@ -107,10 +114,14 @@ graphs in one row. Tables disable pagination and rely on scrolling.
 - `puppet_config_valid`
 - `puppet_agent_lock_state_valid`
 - `puppet_last_run_summary_valid`
+- `puppet_last_run_summary_data_available`
+- `puppet_last_run_summary_data_stale`
 
 The visible columns are `instance`, exporter version, certname, environment,
 Puppet server, Puppet version, failed resources, last-run age, run status,
 disabled state, source validity, and disabled-agent message.
+The table also distinguishes current summary validity from last-known-good
+availability and staleness.
 
 ## Alert Shape
 
@@ -119,6 +130,7 @@ The bundled Prometheus rules cover:
 - exporter scrape availability
 - framework background collection failure
 - source read failures and readable-but-invalid source states
+- stale last-known-good run-summary data
 - stale `last_run_summary.yaml` mtime and stale Puppet run timestamps
 - stale numeric Puppet catalog version timestamps
 - failed Puppet runs

@@ -22,7 +22,8 @@ func NewFeatureMetricHandlers() featurekit.FeatureMetricHandlers[Snapshot] {
 func CollectFeatureMetrics(ctx featurekit.FeatureMetricsContext[Snapshot], ch chan<- prometheus.Metric, snapshot Snapshot, _ time.Time) {
 	collectConfigMetrics(ch, ctx.Descriptors, snapshot.puppet.Config)
 	collectLockMetrics(ch, ctx.Descriptors, snapshot.puppet.Lock)
-	collectSummaryMetrics(ch, ctx.Descriptors, snapshot.puppet.Summary)
+	collectSummaryMetrics(ch, ctx.Descriptors, snapshot.puppet.Summary, snapshot.summaryLastKnownGood)
+	featurekit.CollectLastKnownGoodMetrics(ctx, ch, lastRunSummaryLastKnownGoodMetricIDs, snapshot.summaryLastKnownGood)
 }
 
 func LogFeatureSnapshotError(_ featurekit.FeatureMetricsContext[Snapshot], logger *slog.Logger, snapshot Snapshot) {
@@ -60,22 +61,23 @@ func collectLockMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureM
 	ch <- prometheus.MustNewConstMetric(metrics.Get(metricAgentLockStateValid), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid))
 }
 
-func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureMetricDescriptors, snapshot puppetcheck.SummarySnapshot) {
-	collectSourceMetrics(ch, metrics, summarySourceMetricIDs, snapshot.MTimeSeconds, snapshot.ReadErrorsTotal, snapshot.ParseErrorsTotal, snapshot.ScrapeDurationSeconds)
-	if snapshot.Valid {
-		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Catalog, "CatalogVersion")
-		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, snapshot.Versions.Puppet, "PuppetVersion")
-		if catalogTimestamp, ok := snapshot.Versions.CatalogTimestampSeconds(); ok {
+func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.FeatureMetricDescriptors, current puppetcheck.SummarySnapshot, lastKnownGood featurekit.LastKnownGoodResult[puppetcheck.SummarySnapshot]) {
+	collectSourceMetrics(ch, metrics, summarySourceMetricIDs, current.MTimeSeconds, current.ReadErrorsTotal, current.ParseErrorsTotal, current.ScrapeDurationSeconds)
+	if lastKnownGood.Available {
+		summary := lastKnownGood.Value
+		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, summary.Versions.Catalog, "CatalogVersion")
+		ch <- prometheus.MustNewConstMetric(metrics.Get(metricVersionInfo), prometheus.GaugeValue, 1, summary.Versions.Puppet, "PuppetVersion")
+		if catalogTimestamp, ok := summary.Versions.CatalogTimestampSeconds(); ok {
 			ch <- prometheus.MustNewConstMetric(metrics.Get(metricCatalogVersionTimestamp), prometheus.GaugeValue, catalogTimestamp)
 		}
-		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSuccess), prometheus.GaugeValue, snapshot.RunSuccess)
-		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunTimestamp), prometheus.GaugeValue, snapshot.LastRunTimestamp)
-		collectNamedMetrics(ch, metrics.Get(metricLastRunDuration), snapshot.Durations)
-		collectNamedMetrics(ch, metrics.Get(metricResources), snapshot.Resources)
-		collectNamedMetrics(ch, metrics.Get(metricEvents), snapshot.Events)
+		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSuccess), prometheus.GaugeValue, summary.RunSuccess)
+		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunTimestamp), prometheus.GaugeValue, summary.LastRunTimestamp)
+		collectNamedMetrics(ch, metrics.Get(metricLastRunDuration), summary.Durations)
+		collectNamedMetrics(ch, metrics.Get(metricResources), summary.Resources)
+		collectNamedMetrics(ch, metrics.Get(metricEvents), summary.Events)
 	}
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryUp), prometheus.GaugeValue, framework.BoolFloat(snapshot.Up))
-	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryValid), prometheus.GaugeValue, framework.BoolFloat(snapshot.Valid))
+	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryUp), prometheus.GaugeValue, framework.BoolFloat(current.Up))
+	ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSummaryValid), prometheus.GaugeValue, framework.BoolFloat(current.Valid))
 }
 
 type sourceMetricIDs struct {

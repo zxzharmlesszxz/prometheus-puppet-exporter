@@ -17,6 +17,7 @@ func FeatureSmoke(ctx featurekit.SmokeContext[Config]) featurekit.SmokeSpec {
 			featurekit.FeatureMetricName(ctx.FeatureName, "", metricCatalogVersionTimestamp, featureMetricSpecs) + " 1.774227222e+09",
 			featurekit.FeatureMetricName(ctx.FeatureName, "", metricLastRunSummaryUp, featureMetricSpecs) + " 1",
 			featurekit.FeatureMetricName(ctx.FeatureName, "", metricLastRunSummaryValid, featureMetricSpecs) + " 1",
+			featurekit.FeatureMetricName(ctx.FeatureName, "", lastRunSummaryLastKnownGoodMetricIDs.DataAvailable, featureMetricSpecs) + " 1",
 		},
 		RejectMetrics: []string{
 			featurekit.FeatureMetricName(ctx.FeatureName, "", metricConfigUp, featureMetricSpecs) + " 0",

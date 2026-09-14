@@ -43,10 +43,34 @@ func TestValidateFeatureConfigRejectsBlankPaths(t *testing.T) {
 	}
 }
 
+func TestUpdateSummaryLastKnownGoodRetainsAndMarksSummaryStale(t *testing.T) {
+	t.Parallel()
+
+	now := time.Unix(1774433244, 0)
+	store := featurekit.NewLastKnownGood[string, puppetcheck.SummarySnapshot](summaryLastKnownGoodStaleAfter)
+	summary := puppetcheck.SummarySnapshot{Valid: true, LastRunTimestamp: 1774433000}
+
+	result := updateSummaryLastKnownGood(store, summary, now)
+	if !result.Available || result.Stale || result.Value.LastRunTimestamp != summary.LastRunTimestamp {
+		t.Fatalf("successful result = %#v, want fresh available summary", result)
+	}
+
+	result = updateSummaryLastKnownGood(store, puppetcheck.SummarySnapshot{}, now.Add(time.Hour))
+	if !result.Available || result.Stale || result.ConsecutiveFailures != 1 {
+		t.Fatalf("failed refresh result = %#v, want fresh retained summary", result)
+	}
+
+	result = updateSummaryLastKnownGood(store, puppetcheck.SummarySnapshot{}, now.Add(summaryLastKnownGoodStaleAfter))
+	if !result.Available || !result.Stale || result.ConsecutiveFailures != 2 {
+		t.Fatalf("stale result = %#v, want stale retained summary", result)
+	}
+}
+
 func NewFeatureTestSpec() FeatureTestSpec {
 	fixtures := filepath.Join("..", "..", "testdata")
 	return FeatureTestSpec{
 		SuccessfulSnapshot: func(at time.Time) Snapshot {
+			summary := puppetcheck.SummarySnapshot{Valid: true}
 			return Snapshot{
 				puppet: puppetcheck.Snapshot{
 					AttemptTime: at,
@@ -55,7 +79,9 @@ func NewFeatureTestSpec() FeatureTestSpec {
 						Up:    true,
 						Valid: true,
 					},
+					Summary: summary,
 				},
+				summaryLastKnownGood: successfulSummary(summary, at),
 			}
 		},
 		FailedSnapshot: func(at time.Time, _ error) Snapshot {
@@ -94,7 +120,9 @@ func RegisterFeatureTests(suite *FeatureTestSuite) {
 	suite.Register("collector_reports_present_lock_without_message_as_disabled", func(t *testing.T) {
 		testCollectorReportsPresentLockWithoutMessageAsDisabled(t, suite)
 	})
-	suite.Register("collector_omits_business_metrics_for_failed_sources", func(t *testing.T) { testCollectorOmitsBusinessMetricsForFailedSources(t, suite) })
+	suite.Register("collector_retains_summary_metrics_after_failed_refresh", func(t *testing.T) {
+		testCollectorRetainsSummaryMetricsAfterFailedRefresh(t, suite)
+	})
 	suite.Register("collector_rejects_duplicate_registration", func(t *testing.T) { testCollectorRejectsDuplicateRegistration(t, suite) })
 	suite.Register("exporter_registers_collector_with_fixtures", func(t *testing.T) { testExporterRegistersCollectorWithFixtures(t, suite) })
 	suite.Register("exporter_cli_overrides_config_file", func(t *testing.T) { testExporterCLIOverridesConfigFile(t, suite) })
@@ -160,6 +188,15 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 				MTimeSeconds:     1774433020,
 			},
 		},
+		summaryLastKnownGood: successfulSummary(puppetcheck.SummarySnapshot{
+			Valid:            true,
+			Versions:         puppetcheck.Versions{Catalog: "1774217222", Puppet: "8.10.0"},
+			RunSuccess:       1,
+			LastRunTimestamp: 1774433244,
+			Durations:        map[string]float64{"total": 28.5},
+			Resources:        map[string]float64{"changed": 2, "total": 42},
+			Events:           map[string]float64{"success": 12, "total": 12},
+		}, now),
 	})
 	collector := suite.NewCollectorWithNow(
 		testFeatureName,
@@ -189,13 +226,26 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 	exportertest.AssertMetricValue(t, families, "puppet_events", map[string]string{"name": "success"}, 12)
 	exportertest.AssertMetricValue(t, families, "puppet_version_info", map[string]string{"name": "PuppetVersion", "value": "8.10.0"}, 1)
 	exportertest.AssertMetricValue(t, families, "puppet_catalog_version_timestamp_seconds", nil, 1774217222)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_data_available", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_data_stale", nil, 0)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_consecutive_failures", nil, 0)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_last_success_timestamp_seconds", nil, 1774433244)
 	exportertest.AssertMetricValue(t, families, testLastSuccess, nil, 1)
 	exportertest.AssertMetricValue(t, families, testLastTimestamp, nil, 1774433244)
 	exportertest.AssertMetricValue(t, families, testLastSuccessfulTS, nil, 1774433244)
 }
 
-func testCollectorOmitsBusinessMetricsForFailedSources(t *testing.T, suite *FeatureTestSuite) {
+func testCollectorRetainsSummaryMetricsAfterFailedRefresh(t *testing.T, suite *FeatureTestSuite) {
 	now := time.Unix(1774433244, 0)
+	lastSuccess := now.Add(-time.Hour)
+	lastKnownGood := successfulSummary(puppetcheck.SummarySnapshot{
+		Valid:            true,
+		Versions:         puppetcheck.Versions{Catalog: "1774217222", Puppet: "8.10.0"},
+		RunSuccess:       1,
+		LastRunTimestamp: 1774430000,
+	}, lastSuccess)
+	lastKnownGood.LastAttempt = now
+	lastKnownGood.ConsecutiveFailures = 1
 	collector := suite.NewCollectorWithNow(
 		testFeatureName,
 		testMetricNamespace,
@@ -216,6 +266,7 @@ func testCollectorOmitsBusinessMetricsForFailedSources(t *testing.T, suite *Feat
 					ParseErrorsTotal: 1,
 				},
 			},
+			summaryLastKnownGood: lastKnownGood,
 		}),
 		testRefreshInterval,
 		func() time.Time { return now },
@@ -232,9 +283,22 @@ func testCollectorOmitsBusinessMetricsForFailedSources(t *testing.T, suite *Feat
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_up", nil, 1)
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_valid", nil, 0)
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_parse_errors_total", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_data_available", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_consecutive_failures", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_last_success_timestamp_seconds", nil, float64(lastSuccess.Unix()))
+	exportertest.AssertMetricValue(t, families, "puppet_last_run_success", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_catalog_version_timestamp_seconds", nil, 1774217222)
 	exportertest.AssertMetricValue(t, families, testLastSuccess, nil, 0)
 	assertMetricFamilyAbsent(t, families, "puppet_config")
-	assertMetricFamilyAbsent(t, families, "puppet_last_run_success")
+}
+
+func successfulSummary(summary puppetcheck.SummarySnapshot, at time.Time) featurekit.LastKnownGoodResult[puppetcheck.SummarySnapshot] {
+	return featurekit.LastKnownGoodResult[puppetcheck.SummarySnapshot]{
+		Value:       summary,
+		Available:   true,
+		LastSuccess: at,
+		LastAttempt: at,
+	}
 }
 
 func testCollectorRejectsDuplicateRegistration(t *testing.T, suite *FeatureTestSuite) {

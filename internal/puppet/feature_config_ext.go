@@ -21,10 +21,11 @@ type Config struct {
 }
 
 const (
-	DefaultRefreshInterval = time.Minute
-	DefaultConfigPath      = "/etc/puppetlabs/puppet/puppet.conf"
-	DefaultLockPath        = "/opt/puppetlabs/puppet/public/agent_disabled.lock"
-	DefaultSummaryPath     = "/opt/puppetlabs/puppet/public/last_run_summary.yaml"
+	DefaultRefreshInterval         = time.Minute
+	summaryLastKnownGoodStaleAfter = 2 * time.Hour
+	DefaultConfigPath              = "/etc/puppetlabs/puppet/puppet.conf"
+	DefaultLockPath                = "/opt/puppetlabs/puppet/public/agent_disabled.lock"
+	DefaultSummaryPath             = "/opt/puppetlabs/puppet/public/last_run_summary.yaml"
 )
 
 var DefaultFeatureConfigFileName = "prometheus-puppet-exporter.yml"

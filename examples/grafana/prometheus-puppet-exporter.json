@@ -256,7 +256,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "avg(time() - puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"})",
+                        "expr": "avg((time() - puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"}) and puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"} > 0)",
                         "legendFormat": "age",
                         "range": false,
                         "instant": true
@@ -851,7 +851,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "time() - puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"}",
+                        "expr": "(time() - puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"}) and puppet_exporter_last_collection_timestamp_seconds{job=~\"$job\"} > 0",
                         "legendFormat": "{{instance}} attempt age",
                         "range": true,
                         "instant": false
@@ -3280,8 +3280,8 @@
         "kind": "Panel",
         "spec": {
           "id": 26,
-          "title": "Source Up / Valid",
-          "description": "Optional feature source health gauges emitted by file or source collectors.",
+          "title": "Source and Summary Fallback State",
+          "description": "Current source health plus last-known-good summary availability, staleness, and consecutive failures.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -3299,8 +3299,8 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace({job=~\"$job\", __name__=~\"puppet.*_(up|valid)\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_(up|valid)\")",
-                        "legendFormat": "{{source}} {{instance}}",
+                        "expr": "label_replace(label_replace({job=~\"$job\", __name__=~\"puppet.*_(up|valid|data_available|data_stale|consecutive_failures)\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_(up|valid|data_available|data_stale|consecutive_failures)\"), \"state\", \"$1\", \"__name__\", \"puppet_.*_(up|valid|data_available|data_stale|consecutive_failures)\")",
+                        "legendFormat": "{{state}} {{source}} {{instance}}",
                         "range": true,
                         "instant": false
                       }
@@ -3398,8 +3398,8 @@
         "kind": "Panel",
         "spec": {
           "id": 27,
-          "title": "Source MTime Age",
-          "description": "Age of optional source modification timestamps.",
+          "title": "Source and Summary Success Age",
+          "description": "Source modification ages plus age of the last valid summary collection.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -3417,7 +3417,7 @@
                       },
                       "spec": {
                         "editorMode": "code",
-                        "expr": "time() - label_replace({job=~\"$job\", __name__=~\"puppet.*_mtime_seconds\"}, \"source\", \"$1\", \"__name__\", \"puppet_(.*)_mtime_seconds\")",
+                        "expr": "time() - label_replace(({job=~\"$job\", __name__=~\"puppet.*_mtime_seconds\"} > 0), \"source\", \"$1\", \"__name__\", \"puppet_(.*)_mtime_seconds\") or label_replace(time() - (puppet_last_run_summary_last_success_timestamp_seconds{job=~\"$job\"} > 0), \"source\", \"last_run_summary_lkg\", \"job\", \".*\")",
                         "legendFormat": "{{source}} {{instance}}",
                         "range": true,
                         "instant": false
@@ -4530,6 +4530,52 @@
                     "refId": "J",
                     "hidden": false
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_summary_data_available{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "K",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "puppet_last_run_summary_data_stale{job=~\"$job\"}",
+                        "legendFormat": "__auto",
+                        "range": false,
+                        "instant": true,
+                        "format": "table"
+                      }
+                    },
+                    "refId": "L",
+                    "hidden": false
+                  }
                 }
               ],
               "transformations": [
@@ -4812,7 +4858,9 @@
                         "Value #H": 10,
                         "Value #I": 11,
                         "Value #J": 12,
-                        "message": 13
+                        "Value #K": 13,
+                        "Value #L": 14,
+                        "message": 15
                       },
                       "orderByMode": "manual",
                       "renameByName": {
@@ -4828,6 +4876,8 @@
                         "Value #H": "Config ↑",
                         "Value #I": "Lock",
                         "Value #J": "Summary",
+                        "Value #K": "LKG",
+                        "Value #L": "LKG stale",
                         "message": "Message"
                       }
                     }
@@ -5303,6 +5353,112 @@
                       {
                         "id": "custom.width",
                         "value": 90
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "LKG"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Missing",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Available",
+                                "color": "green"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "red"
+                            },
+                            {
+                              "value": 1,
+                              "color": "green"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "scope": "series",
+                      "options": "LKG stale"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Fresh",
+                                "color": "green"
+                              },
+                              "1": {
+                                "text": "Stale",
+                                "color": "red"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "value": 0,
+                              "color": "green"
+                            },
+                            {
+                              "value": 1,
+                              "color": "red"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 95
                       }
                     ]
                   }

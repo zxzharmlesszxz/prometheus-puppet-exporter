@@ -60,6 +60,31 @@ A numeric `version.config` catalog timestamp follows the same future-skew
 limit; non-numeric custom catalog versions remain valid but do not produce
 `puppet_catalog_version_timestamp_seconds`.
 
+### Last-Known-Good Summary State
+
+The exporter retains the most recent valid `last_run_summary.yaml` snapshot
+when a later read or parse attempt fails. Current `*_up` and `*_valid` gauges
+still describe the latest attempt, while summary-derived business metrics use
+the retained value until a newer valid summary is collected.
+
+`puppet_last_run_summary_last_success_timestamp_seconds`
+
+Unix timestamp of the most recent valid summary collection.
+
+`puppet_last_run_summary_consecutive_failures`
+
+Number of consecutive failed summary collection attempts since the last
+success.
+
+`puppet_last_run_summary_data_available`
+
+Whether a valid current or retained summary is available.
+
+`puppet_last_run_summary_data_stale`
+
+Whether retained summary data is available but no valid summary has been
+collected for at least two hours.
+
 ### Source Freshness and Duration
 
 `puppet_config_mtime_seconds`
@@ -149,7 +174,8 @@ Current exported entries include `CatalogVersion` and `PuppetVersion`.
 
 Unix timestamp encoded in Puppet's `version.config` catalog version. The metric
 is emitted only when the catalog version is a positive numeric value. It can be
-used to alert when an agent has not applied a new catalog recently.
+used to alert when an agent has not applied a new catalog recently. During a
+transient summary failure, the metric retains its last-known-good value.
 
 `puppet_last_run_success`
 

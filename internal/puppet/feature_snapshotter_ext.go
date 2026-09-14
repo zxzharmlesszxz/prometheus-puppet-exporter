@@ -34,9 +34,21 @@ func newSnapshotEngine(config Config) (featurekit.SnapshotEngine[Snapshot], erro
 		Lock:    config.LockPath,
 		Summary: config.SummaryPath,
 	})
+	summaryLastKnownGood := featurekit.NewLastKnownGood[string, puppetcheck.SummarySnapshot](summaryLastKnownGoodStaleAfter)
 	return featurekit.SnapshotEngineFunc[Snapshot](func(ctx context.Context, now time.Time) Snapshot {
+		puppetSnapshot := checker.Snapshot(ctx, now)
 		return Snapshot{
-			puppet: checker.Snapshot(ctx, now),
+			puppet:               puppetSnapshot,
+			summaryLastKnownGood: updateSummaryLastKnownGood(summaryLastKnownGood, puppetSnapshot.Summary, now),
 		}
 	}), nil
+}
+
+func updateSummaryLastKnownGood(store *featurekit.LastKnownGood[string, puppetcheck.SummarySnapshot], summary puppetcheck.SummarySnapshot, now time.Time) featurekit.LastKnownGoodResult[puppetcheck.SummarySnapshot] {
+	if summary.Valid {
+		store.Success(lastRunSummarySource, summary, now)
+	} else {
+		store.Failure(lastRunSummarySource, now)
+	}
+	return store.Get(lastRunSummarySource, now)
 }

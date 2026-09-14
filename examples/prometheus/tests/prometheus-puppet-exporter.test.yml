@@ -4,16 +4,167 @@ rule_files:
 evaluation_interval: 1m
 
 tests:
+  - name: Source and retained summary states alert after their hold times
+    interval: 1m
+    input_series:
+      - series: 'puppet_config_up{job="puppet_exporter",instance="config-down"}'
+        values: '0x140'
+      - series: 'puppet_exporter_last_collection_success{job="puppet_exporter",instance="collection-failed"}'
+        values: '0x140'
+      - series: 'puppet_config_up{job="puppet_exporter",instance="config-invalid"}'
+        values: '1x140'
+      - series: 'puppet_config_valid{job="puppet_exporter",instance="config-invalid"}'
+        values: '0x140'
+      - series: 'puppet_agent_lock_state_up{job="puppet_exporter",instance="lock-down"}'
+        values: '0x140'
+      - series: 'puppet_agent_lock_state_up{job="puppet_exporter",instance="lock-invalid"}'
+        values: '1x140'
+      - series: 'puppet_agent_lock_state_valid{job="puppet_exporter",instance="lock-invalid"}'
+        values: '0x140'
+      - series: 'puppet_last_run_summary_up{job="puppet_exporter",instance="summary-down"}'
+        values: '0x140'
+      - series: 'puppet_last_run_summary_up{job="puppet_exporter",instance="summary-invalid"}'
+        values: '1x140'
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="summary-invalid"}'
+        values: '0x140'
+      - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="summary-stale"}'
+        values: '1x140'
+      - series: 'puppet_last_run_summary_mtime_seconds{job="puppet_exporter",instance="summary-stale"}'
+        values: '1x140'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="run-stale"}'
+        values: '1x140'
+      - series: 'puppet_last_run_timestamp_seconds{job="puppet_exporter",instance="run-stale"}'
+        values: '1x140'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="run-failed"}'
+        values: '1x140'
+      - series: 'puppet_last_run_success{job="puppet_exporter",instance="run-failed"}'
+        values: '0x140'
+    alert_rule_test:
+      - eval_time: 11m
+        alertname: PuppetConfigSourceDown
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: config-down
+            exp_annotations:
+              summary: Puppet config source is unreadable on config-down
+              description: |
+                prometheus-puppet-exporter could not read puppet.conf for at least 10 minutes.
+      - eval_time: 11m
+        alertname: PuppetExporterCollectionFailed
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: collection-failed
+            exp_annotations:
+              summary: Puppet exporter collection failed on collection-failed
+              description: |
+                prometheus-puppet-exporter has reported unsuccessful background collections for at least 10 minutes.
+      - eval_time: 11m
+        alertname: PuppetConfigInvalid
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: config-invalid
+            exp_annotations:
+              summary: Puppet config is present but invalid on config-invalid
+              description: |
+                puppet.conf is readable, but one or more required fields are empty.
+      - eval_time: 11m
+        alertname: PuppetLockStateSourceDown
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: lock-down
+            exp_annotations:
+              summary: Puppet lock state source is unreadable on lock-down
+              description: |
+                prometheus-puppet-exporter could not read agent_disabled.lock for at least 10 minutes.
+      - eval_time: 11m
+        alertname: PuppetLockStateInvalid
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: lock-invalid
+            exp_annotations:
+              summary: Puppet lock state source is invalid on lock-invalid
+              description: |
+                agent_disabled.lock is readable, but prometheus-puppet-exporter cannot parse it.
+      - eval_time: 11m
+        alertname: PuppetRunSummarySourceDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: summary-down
+            exp_annotations:
+              summary: Puppet run summary source is unreadable on summary-down
+              description: |
+                prometheus-puppet-exporter could not read last_run_summary.yaml for at least 10 minutes.
+      - eval_time: 11m
+        alertname: PuppetRunSummaryInvalid
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: summary-invalid
+            exp_annotations:
+              summary: Puppet run summary source is invalid on summary-invalid
+              description: |
+                last_run_summary.yaml is readable, but prometheus-puppet-exporter cannot parse or interpret it.
+      - eval_time: 2h16m
+        alertname: PuppetRunSummaryStale
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: summary-stale
+            exp_annotations:
+              summary: Puppet run summary is stale on summary-stale
+              description: |
+                last_run_summary.yaml for summary-stale has not been updated for more than 2 hours.
+      - eval_time: 2h16m
+        alertname: PuppetLastRunStale
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: puppet_exporter
+              instance: run-stale
+            exp_annotations:
+              summary: Puppet last run is stale on run-stale
+              description: |
+                The last Puppet run timestamp for run-stale is older than 2 hours.
+      - eval_time: 16m
+        alertname: PuppetLastRunFailed
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: run-failed
+            exp_annotations:
+              summary: Last Puppet run was unsuccessful on run-failed
+              description: |
+                The most recent Puppet run for run-failed is marked unsuccessful by the exporter.
+
   - name: Puppet run problems retain their domain labels and values
     interval: 1m
     input_series:
       - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="node-1"}'
+        values: '1x20'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="node-1"}'
         values: '1x20'
       - series: 'puppet_resources{job="puppet_exporter",instance="node-1",name="failed"}'
         values: '2x20'
       - series: 'puppet_events{job="puppet_exporter",instance="node-1",name="failure"}'
         values: '3x20'
       - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="invalid-node"}'
+        values: '0x20'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="invalid-node"}'
         values: '0x20'
       - series: 'puppet_resources{job="puppet_exporter",instance="invalid-node",name="failed"}'
         values: '5x20'
@@ -49,10 +200,14 @@ tests:
     interval: 1m
     input_series:
       - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="stale-node"}'
+        values: '0x121'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="stale-node"}'
         values: '1x121'
       - series: 'puppet_catalog_version_timestamp_seconds{job="puppet_exporter",instance="stale-node"}'
         values: '1x121'
       - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="fresh-node"}'
+        values: '1x121'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="fresh-node"}'
         values: '1x121'
       - series: 'puppet_catalog_version_timestamp_seconds{job="puppet_exporter",instance="fresh-node"}'
         values: '7200x121'
@@ -68,6 +223,24 @@ tests:
               summary: Puppet catalog version is stale on stale-node
               description: |
                 The Puppet catalog version timestamp for stale-node is older than 1 hour.
+
+  - name: Stale last-known-good summary data alerts
+    interval: 1m
+    input_series:
+      - series: 'puppet_last_run_summary_data_stale{job="puppet_exporter",instance="fallback-node"}'
+        values: '1x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: PuppetRunSummaryLastKnownGoodStale
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: fallback-node
+            exp_annotations:
+              summary: Puppet run summary fallback is stale on fallback-node
+              description: |
+                prometheus-puppet-exporter has not collected a valid last_run_summary.yaml for more than 2 hours.
 
   - name: Disabled agents and unavailable exporters alert after their hold times
     interval: 1m

@@ -2,6 +2,10 @@ package puppet
 
 import "github.com/zxzharmlesszxz/prometheus-exporter-framework/exporter/featurekit"
 
+const lastRunSummarySource = "last_run_summary"
+
+var lastRunSummaryLastKnownGoodMetricIDs = featurekit.LastKnownGoodMetricIDsFor(lastRunSummarySource)
+
 const (
 	metricConfig                       = "config"
 	metricConfigUp                     = "config_up"
@@ -32,7 +36,7 @@ const (
 	metricLastRunSummaryScrapeDuration = "last_run_summary_scrape_duration"
 )
 
-var featureMetricSpecs = []featurekit.FeatureMetricSpec{
+var featureMetricSpecs = append([]featurekit.FeatureMetricSpec{
 	{
 		ID:     metricConfig,
 		Scope:  featurekit.MetricScopeFeature,
@@ -201,4 +205,4 @@ var featureMetricSpecs = []featurekit.FeatureMetricSpec{
 		Name:  "_last_run_summary_scrape_duration_seconds",
 		Help:  "Time spent refreshing metrics from last_run_summary.yaml.",
 	},
-}
+}, featurekit.LastKnownGoodMetricSpecs(lastRunSummarySource, nil)...)

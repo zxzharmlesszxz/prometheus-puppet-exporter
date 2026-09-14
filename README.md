@@ -81,6 +81,8 @@ puppet_agent_lock_state_up 1
 puppet_agent_lock_state_valid 1
 puppet_last_run_summary_up 1
 puppet_last_run_summary_valid 1
+puppet_last_run_summary_data_available 1
+puppet_last_run_summary_data_stale 0
 puppet_last_run_success 1
 puppet_last_run_timestamp_seconds 1774217244
 puppet_last_run_duration_seconds{name="total"} 28.023470087
@@ -105,6 +107,10 @@ Important metric groups:
 - `puppet_agent_lock_state_up`
 - `puppet_agent_lock_state_valid`
 - `puppet_last_run_summary_valid`
+- `puppet_last_run_summary_data_available`
+- `puppet_last_run_summary_data_stale`
+- `puppet_last_run_summary_consecutive_failures`
+- `puppet_last_run_summary_last_success_timestamp_seconds`
 - `puppet_exporter_last_collection_success`
 - `puppet_exporter_collection_duration_seconds`
 - `puppet_exporter_build_info`
@@ -120,6 +126,12 @@ Each source follows a simple health convention:
 - `*_valid = 1` means the readable source was parsed and interpreted
   successfully
 - `*_valid = 0` with `*_up = 1` means the source is readable but invalid
+
+The exporter keeps the latest valid `last_run_summary.yaml` as
+last-known-good data. Summary-derived Puppet metrics remain available during
+transient read or parse failures, while current source-health metrics still
+report the failure. Retained data is marked stale after two hours without a
+valid summary refresh.
 
 Read and parse error metrics such as `puppet_config_read_errors_total` are
 cumulative counters. Use `rate()` or `increase()` for history; use `*_up` and
@@ -198,8 +210,9 @@ in the ignored `Makefile.local` file.
 
 Example Prometheus alert rules live in [`examples/prometheus/prometheus-puppet-exporter.yml`](examples/prometheus/prometheus-puppet-exporter.yml).
 They cover exporter scrape availability, framework collection failure,
-source read/validity failures, stale Puppet data, failed Puppet runs, resource
-problems, event failures, disabled agents, and read/parse counter spikes.
+source read/validity failures, stale last-known-good summary data, stale Puppet
+data, failed Puppet runs, resource problems, event failures, disabled agents,
+and read/parse counter spikes.
 The bundled exporter-down rule and Grafana job variable select scrape jobs
 whose names match `^(prometheus[_-])?puppet[_-]exporter$`; adapt that matcher when using a
 different naming convention.
@@ -219,9 +232,12 @@ The `Overview` tab contains:
 - collapsed `Source Health`, `Historical Graph`, and `Exporter Collection`
   rows.
 
+`Source Health` includes current source state plus last-known-good summary
+availability, staleness, consecutive failures, and last-success age.
+
 `Puppet Inventory` joins Puppet config, exporter build version, Puppet version,
 failed resources, last-run age, run success, disabled state, source validity,
-and disabled-agent message by `instance`.
+last-known-good summary state, and disabled-agent message by `instance`.
 
 ## Scaffold-Owned Go Files
 
