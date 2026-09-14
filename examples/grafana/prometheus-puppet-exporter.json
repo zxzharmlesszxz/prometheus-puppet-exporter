@@ -4591,6 +4591,30 @@
                 },
                 {
                   "kind": "Transformation",
+                  "group": "filterFieldsByName",
+                  "spec": {
+                    "options": {
+                      "include": {
+                        "names": [
+                          "instance",
+                          "puppet_environment",
+                          "Value #D",
+                          "Value #E",
+                          "Value #F",
+                          "Value #G",
+                          "Value #H",
+                          "Value #I",
+                          "Value #J",
+                          "Value #K",
+                          "Value #L",
+                          "message"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
                   "group": "organize",
                   "spec": {
                     "options": {
@@ -4672,6 +4696,8 @@
                         "environment 8": true,
                         "environment 9": true,
                         "environment 10": true,
+                        "environment 11": true,
+                        "environment 12": true,
                         "puppet_certname 1": true,
                         "puppet_certname 2": true,
                         "puppet_certname 3": true,
@@ -4704,10 +4730,12 @@
                         "Value #B": true,
                         "Time 10": true,
                         "Time 11": true,
+                        "Time 12": true,
                         "__name__ 10": true,
                         "__name__ 11": true,
                         "job 10": true,
                         "job 11": true,
+                        "job 12": true,
                         "name 10": true,
                         "name 11": true,
                         "instance 10": true,
