@@ -30,8 +30,8 @@
   Puppet file-check engine: `puppet.conf`, `agent_disabled.lock`, and
   `last_run_summary.yaml` parsing, counters, and composite snapshot types.
 - `examples/grafana`
-  Example Grafana dashboard for fleet overview and per-instance inspection via
-  dashboard variables.
+  Example Grafana dashboard and Grafana-managed alert provisioning. Alert
+  metadata and PromQL mirror the Prometheus rules.
 - `examples/prometheus`
   Example Prometheus alert rules for exporter availability, source failures,
   stale data, failed runs, resource/event failures, and disabled agents.
@@ -138,6 +138,9 @@ The bundled Prometheus rules cover:
 - event failures via `puppet_events{name="failure"}`
 - disabled Puppet agents
 - read/parse counter increases over a 30-minute window
+
+Grafana-managed alerts mirror the Prometheus expressions, hold durations,
+severity labels, and annotations.
 
 ## Testing Strategy
 

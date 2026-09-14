@@ -175,6 +175,8 @@ Docker Compose provisions Grafana with:
 
 - Prometheus datasource `DS_PROMETHEUS`
 - dashboards from [`examples/grafana`](examples/grafana)
+- alerting rules from
+  [`examples/grafana/alerting`](examples/grafana/alerting)
 - default login `admin` / `admin`
 
 Open `http://localhost:3000` after `make compose`.
@@ -209,6 +211,8 @@ in the ignored `Makefile.local` file.
 ## Alert Rules
 
 Example Prometheus alert rules live in [`examples/prometheus/prometheus-puppet-exporter.yml`](examples/prometheus/prometheus-puppet-exporter.yml).
+Equivalent Grafana-managed rules are provisioned from
+[`examples/grafana/alerting/prometheus-puppet-exporter.yml`](examples/grafana/alerting/prometheus-puppet-exporter.yml).
 They cover exporter scrape availability, framework collection failure,
 source read/validity failures, stale last-known-good summary data, stale Puppet
 data, failed Puppet runs, resource problems, event failures, disabled agents,
