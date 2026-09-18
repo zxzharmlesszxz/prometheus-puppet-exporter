@@ -52,6 +52,7 @@ type SummarySnapshot struct {
 	Valid                 bool
 	Versions              Versions
 	RunSuccess            float64
+	Changes               float64
 	Resources             map[string]float64
 	Events                map[string]float64
 	Durations             map[string]float64

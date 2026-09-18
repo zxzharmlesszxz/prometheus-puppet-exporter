@@ -86,6 +86,7 @@ puppet_last_run_summary_data_stale 0
 puppet_last_run_success 1
 puppet_last_run_timestamp_seconds 1774217244
 puppet_last_run_duration_seconds{name="total"} 28.023470087
+puppet_changes 12
 puppet_agent_disabled{message=""} 0
 puppet_exporter_last_collection_success 1
 ```
@@ -101,6 +102,7 @@ Important metric groups:
 - `puppet_last_run_summary_up`
 - `puppet_last_run_timestamp_seconds`
 - `puppet_last_run_duration_seconds`
+- `puppet_changes`
 - `puppet_resources`
 - `puppet_events`
 - `puppet_agent_disabled`
@@ -137,7 +139,9 @@ Read and parse error metrics such as `puppet_config_read_errors_total` are
 cumulative counters. Use `rate()` or `increase()` for history; use `*_up` and
 `*_valid` for current state.
 
-The exporter derives `puppet_last_run_success` locally from summary counters instead of exposing it as a raw Puppet field.
+The exporter derives `puppet_last_run_success` locally from event failures,
+failed resources, and resources that failed to restart instead of exposing it
+as a raw Puppet field.
 Missing `agent_disabled.lock` is treated as a valid enabled-agent state.
 A present, valid lock file means the agent is disabled even when its optional
 `disabled_message` field is empty or absent.

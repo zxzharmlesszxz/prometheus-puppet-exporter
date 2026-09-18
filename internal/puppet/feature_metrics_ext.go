@@ -72,6 +72,7 @@ func collectSummaryMetrics(ch chan<- prometheus.Metric, metrics featurekit.Featu
 		}
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunSuccess), prometheus.GaugeValue, summary.RunSuccess)
 		ch <- prometheus.MustNewConstMetric(metrics.Get(metricLastRunTimestamp), prometheus.GaugeValue, summary.LastRunTimestamp)
+		ch <- prometheus.MustNewConstMetric(metrics.Get(metricChanges), prometheus.GaugeValue, summary.Changes)
 		collectNamedMetrics(ch, metrics.Get(metricLastRunDuration), summary.Durations)
 		collectNamedMetrics(ch, metrics.Get(metricResources), summary.Resources)
 		collectNamedMetrics(ch, metrics.Get(metricEvents), summary.Events)

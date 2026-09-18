@@ -162,6 +162,14 @@ tests:
         values: '2x20'
       - series: 'puppet_events{job="puppet_exporter",instance="node-1",name="failure"}'
         values: '3x20'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="restart-node"}'
+        values: '1x20'
+      - series: 'puppet_resources{job="puppet_exporter",instance="restart-node",name="failed_to_restart"}'
+        values: '1x20'
+      - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="drift-node"}'
+        values: '1x20'
+      - series: 'puppet_resources{job="puppet_exporter",instance="drift-node",name="out_of_sync"}'
+        values: '4x20'
       - series: 'puppet_last_run_summary_valid{job="puppet_exporter",instance="invalid-node"}'
         values: '0x20'
       - series: 'puppet_last_run_summary_data_available{job="puppet_exporter",instance="invalid-node"}'
@@ -183,6 +191,15 @@ tests:
               summary: Puppet resource problems on node-1
               description: |
                 The latest Puppet run for node-1 reports failed=2.
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: restart-node
+              name: failed_to_restart
+            exp_annotations:
+              summary: Puppet resource problems on restart-node
+              description: |
+                The latest Puppet run for restart-node reports failed_to_restart=1.
       - eval_time: 16m
         alertname: PuppetEventFailures
         exp_alerts:

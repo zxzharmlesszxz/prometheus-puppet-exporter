@@ -94,12 +94,13 @@ main dashboard is organized into:
 
 - `Overview`: `Status`, `Main Metrics`, collapsed `Source Health`, collapsed
   `Historical Graph`, and collapsed `Exporter Collection`.
+- `Inventory`: a dedicated full-page Puppet inventory table.
 - `Runtime`: framework Go/process runtime panels.
 - `Scrape`: Prometheus-side scrape health panels.
 
-`Main Metrics` contains current Puppet state stats, `Resources` and `Events`
-stat panels, a full-width `Puppet Inventory` table, and three Puppet state
-graphs in one row. Tables disable pagination and rely on scrolling.
+`Main Metrics` contains current Puppet state stats, `Resources`, `Events`, and
+`Changes` stat panels, a full-width `Puppet Inventory` table, and three Puppet
+state graphs in one row. Tables disable pagination and rely on scrolling.
 
 `Puppet Inventory` is the primary fleet table. It joins these series by
 `instance`:
@@ -117,11 +118,11 @@ graphs in one row. Tables disable pagination and rely on scrolling.
 - `puppet_last_run_summary_data_available`
 - `puppet_last_run_summary_data_stale`
 
-The visible columns are `instance`, exporter version, certname, environment,
-Puppet server, Puppet version, failed resources, last-run age, run status,
-disabled state, source validity, and disabled-agent message.
-The table also distinguishes current summary validity from last-known-good
-availability and staleness.
+The Overview table keeps the operational columns: `instance`, environment,
+failed resources, last-run age, run status, disabled state, source validity,
+last-known-good availability and staleness, and disabled-agent message. The
+full-page Inventory table additionally shows certname, Puppet server, and
+Puppet version. Exporter runtime version stays on the Runtime tab.
 
 ## Alert Shape
 
@@ -133,8 +134,9 @@ The bundled Prometheus rules cover:
 - stale last-known-good run-summary data
 - stale `last_run_summary.yaml` mtime and stale Puppet run timestamps
 - stale numeric Puppet catalog version timestamps
-- failed Puppet runs
-- critical resource states: `failed`, `failed_to_restart`, and `out_of_sync`
+- failed Puppet runs, including enabled agents with no numeric catalog version
+  for at least one hour
+- critical resource states: `failed` and `failed_to_restart`
 - event failures via `puppet_events{name="failure"}`
 - disabled Puppet agents
 - read/parse counter increases over a 30-minute window

@@ -192,6 +192,7 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 			Valid:            true,
 			Versions:         puppetcheck.Versions{Catalog: "1774217222", Puppet: "8.10.0"},
 			RunSuccess:       1,
+			Changes:          2,
 			LastRunTimestamp: 1774433244,
 			Durations:        map[string]float64{"total": 28.5},
 			Resources:        map[string]float64{"changed": 2, "total": 42},
@@ -222,6 +223,7 @@ func testCollectorCollectsPuppetMetrics(t *testing.T, suite *FeatureTestSuite) {
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_valid", nil, 1)
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_timestamp_seconds", nil, 1774433244)
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_duration_seconds", map[string]string{"name": "total"}, 28.5)
+	exportertest.AssertMetricValue(t, families, "puppet_changes", nil, 2)
 	exportertest.AssertMetricValue(t, families, "puppet_resources", map[string]string{"name": "changed"}, 2)
 	exportertest.AssertMetricValue(t, families, "puppet_events", map[string]string{"name": "success"}, 12)
 	exportertest.AssertMetricValue(t, families, "puppet_version_info", map[string]string{"name": "PuppetVersion", "value": "8.10.0"}, 1)
@@ -242,6 +244,7 @@ func testCollectorRetainsSummaryMetricsAfterFailedRefresh(t *testing.T, suite *F
 		Valid:            true,
 		Versions:         puppetcheck.Versions{Catalog: "1774217222", Puppet: "8.10.0"},
 		RunSuccess:       1,
+		Changes:          3,
 		LastRunTimestamp: 1774430000,
 	}, lastSuccess)
 	lastKnownGood.LastAttempt = now
@@ -287,6 +290,7 @@ func testCollectorRetainsSummaryMetricsAfterFailedRefresh(t *testing.T, suite *F
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_consecutive_failures", nil, 1)
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_summary_last_success_timestamp_seconds", nil, float64(lastSuccess.Unix()))
 	exportertest.AssertMetricValue(t, families, "puppet_last_run_success", nil, 1)
+	exportertest.AssertMetricValue(t, families, "puppet_changes", nil, 3)
 	exportertest.AssertMetricValue(t, families, "puppet_catalog_version_timestamp_seconds", nil, 1774217222)
 	exportertest.AssertMetricValue(t, families, testLastSuccess, nil, 0)
 	assertMetricFamilyAbsent(t, families, "puppet_config")

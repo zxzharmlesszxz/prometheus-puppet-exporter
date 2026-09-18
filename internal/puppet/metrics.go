@@ -25,6 +25,7 @@ const (
 	metricCatalogVersionTimestamp      = "catalog_version_timestamp"
 	metricLastRunDuration              = "last_run_duration"
 	metricLastRunTimestamp             = "last_run_timestamp"
+	metricChanges                      = "changes"
 	metricResources                    = "resources"
 	metricEvents                       = "events"
 	metricLastRunSuccess               = "last_run_success"
@@ -148,6 +149,12 @@ var featureMetricSpecs = append([]featurekit.FeatureMetricSpec{
 		Scope: featurekit.MetricScopeFeature,
 		Name:  "_last_run_timestamp_seconds",
 		Help:  "Unix timestamp of the last Puppet run.",
+	},
+	{
+		ID:    metricChanges,
+		Scope: featurekit.MetricScopeFeature,
+		Name:  "_changes",
+		Help:  "Number of changes in the last Puppet run.",
 	},
 	{
 		ID:     metricResources,

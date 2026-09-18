@@ -44,6 +44,23 @@ func TestInterpretSummaryMarksRunAsSuccessfulWhenNoFailures(t *testing.T) {
 	}
 }
 
+func TestInterpretSummaryMarksRunAsFailedWhenRestartFails(t *testing.T) {
+	t.Parallel()
+
+	summary := runSummary{
+		Events: map[string]float64{"failure": 0},
+		Resources: map[string]float64{
+			"failed":            0,
+			"failed_to_restart": 1,
+		},
+	}
+
+	interpreted := summary.interpret()
+	if interpreted.RunSuccess != 0 {
+		t.Fatalf("RunSuccess = %v, want 0", interpreted.RunSuccess)
+	}
+}
+
 func TestCatalogTimestampSeconds(t *testing.T) {
 	t.Parallel()
 

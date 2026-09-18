@@ -47,6 +47,9 @@ func TestCheckerReadsFixtureState(t *testing.T) {
 	if snapshot.Summary.RunSuccess != 1 {
 		t.Fatalf("Summary.RunSuccess = %v, want 1", snapshot.Summary.RunSuccess)
 	}
+	if snapshot.Summary.Changes != 12 {
+		t.Fatalf("Summary.Changes = %v, want 12", snapshot.Summary.Changes)
+	}
 	if snapshot.Summary.LastRunTimestamp != 1774433000 {
 		t.Fatalf("Summary.LastRunTimestamp = %v, want 1774433000", snapshot.Summary.LastRunTimestamp)
 	}

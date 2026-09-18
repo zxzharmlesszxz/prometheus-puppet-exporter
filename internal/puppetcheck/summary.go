@@ -82,6 +82,7 @@ func (r runSummary) interpret() SummarySnapshot {
 	result := SummarySnapshot{
 		Up:        true,
 		Valid:     true,
+		Changes:   r.Changes.Total,
 		Durations: copyMetricMap(r.Durations),
 		Versions:  r.Versions,
 		Resources: copyMetricMap(r.Resources),
@@ -96,7 +97,7 @@ func (r runSummary) interpret() SummarySnapshot {
 }
 
 func (r runSummary) success() bool {
-	return r.Events["failure"] == 0 && r.Resources["failed"] == 0
+	return r.Events["failure"] == 0 && r.Resources["failed"] == 0 && r.Resources["failed_to_restart"] == 0
 }
 
 func copyMetricMap(src map[string]float64) map[string]float64 {

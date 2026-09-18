@@ -180,7 +180,8 @@ transient summary failure, the metric retains its last-known-good value.
 `puppet_last_run_success`
 
 Whether the last Puppet run succeeded. The exporter derives this from
-`events.failure == 0` and `resources.failed == 0`.
+`events.failure == 0`, `resources.failed == 0`, and
+`resources.failed_to_restart == 0`.
 
 `puppet_last_run_timestamp_seconds`
 
@@ -193,6 +194,11 @@ Duration values from `time.*`, excluding `last_run`.
 Labels:
 
 - `name`
+
+`puppet_changes`
+
+Number of changes reported by the latest Puppet run from `changes.total`.
+This is a gauge describing the latest run, not a cumulative counter.
 
 `puppet_resources`
 
@@ -209,9 +215,10 @@ Important names used by the dashboard and alert rules:
 - `out_of_sync`
 - `total`
 
-`failed`, `failed_to_restart`, and `out_of_sync` are treated as critical when
-greater than `0`. Other non-`total` resource counters are informational or
-warning-oriented, depending on the dashboard panel. `total` is informational.
+`failed` and `failed_to_restart` are treated as critical when greater than
+`0`. `out_of_sync` indicates drift observed before Puppet attempted to correct
+it, so the dashboard treats it as warning-level information rather than a
+failed run. Other non-`total` counters and `total` are informational.
 
 `puppet_events`
 

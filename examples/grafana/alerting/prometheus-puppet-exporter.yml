@@ -774,7 +774,7 @@ groups:
                 type: prometheus
                 uid: DS_PROMETHEUS
               editorMode: code
-              expr: "puppet_resources{name=~\"failed|failed_to_restart|out_of_sync\"} > 0 and on(instance, job) puppet_last_run_summary_data_available == 1"
+              expr: "puppet_resources{name=~\"failed|failed_to_restart\"} > 0 and on(instance, job) puppet_last_run_summary_data_available == 1"
               instant: true
               intervalMs: 1000
               legendFormat: __auto
