@@ -139,7 +139,7 @@ tests:
               summary: Puppet last run is stale on run-stale
               description: |
                 The last Puppet run timestamp for run-stale is older than 2 hours.
-      - eval_time: 16m
+      - eval_time: 1h1m
         alertname: PuppetLastRunFailed
         exp_alerts:
           - exp_labels:
@@ -147,9 +147,9 @@ tests:
               job: puppet_exporter
               instance: run-failed
             exp_annotations:
-              summary: Last Puppet run was unsuccessful on run-failed
+              summary: Puppet run is failing on run-failed
               description: |
-                The most recent Puppet run for run-failed is marked unsuccessful by the exporter.
+                The last Puppet run is unsuccessful, or an enabled agent has exposed no numeric catalog version, for at least 1 hour.
 
   - name: Puppet run problems retain their domain labels and values
     interval: 1m
@@ -223,6 +223,48 @@ tests:
               summary: Puppet catalog version is stale on stale-node
               description: |
                 The Puppet catalog version timestamp for stale-node is older than 1 hour.
+
+  - name: Missing catalog version alerts only for healthy enabled agents
+    interval: 1m
+    input_series:
+      - series: 'puppet_exporter_last_collection_success{job="puppet_exporter",instance="missing-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_lock_state_valid{job="puppet_exporter",instance="missing-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_disabled{job="puppet_exporter",instance="missing-node",message=""}'
+        values: '0x70'
+      - series: 'puppet_exporter_last_collection_success{job="puppet_exporter",instance="disabled-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_lock_state_valid{job="puppet_exporter",instance="disabled-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_disabled{job="puppet_exporter",instance="disabled-node",message="maintenance"}'
+        values: '1x70'
+      - series: 'puppet_exporter_last_collection_success{job="puppet_exporter",instance="unhealthy-node"}'
+        values: '0x70'
+      - series: 'puppet_agent_lock_state_valid{job="puppet_exporter",instance="unhealthy-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_disabled{job="puppet_exporter",instance="unhealthy-node",message=""}'
+        values: '0x70'
+      - series: 'puppet_exporter_last_collection_success{job="puppet_exporter",instance="present-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_lock_state_valid{job="puppet_exporter",instance="present-node"}'
+        values: '1x70'
+      - series: 'puppet_agent_disabled{job="puppet_exporter",instance="present-node",message=""}'
+        values: '0x70'
+      - series: 'puppet_catalog_version_timestamp_seconds{job="puppet_exporter",instance="present-node"}'
+        values: '1x70'
+    alert_rule_test:
+      - eval_time: 1h1m
+        alertname: PuppetLastRunFailed
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: puppet_exporter
+              instance: missing-node
+            exp_annotations:
+              summary: Puppet run is failing on missing-node
+              description: |
+                The last Puppet run is unsuccessful, or an enabled agent has exposed no numeric catalog version, for at least 1 hour.
 
   - name: Stale last-known-good summary data alerts
     interval: 1m

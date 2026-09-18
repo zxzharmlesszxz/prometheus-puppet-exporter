@@ -125,15 +125,19 @@ groups:
             The Puppet catalog version timestamp for {{ $labels.instance }} is older than 1 hour.
 
       - alert: PuppetLastRunFailed
-        expr: puppet_last_run_summary_data_available == 1
-          and on(instance, job) puppet_last_run_success == 0
-        for: 15m
+        expr: (puppet_last_run_summary_data_available == 1
+          and on(instance, job) puppet_last_run_success == 0)
+          or ((puppet_exporter_last_collection_success == 1
+          and on(instance, job) puppet_agent_lock_state_valid == 1
+          and on(instance, job) puppet_agent_disabled == 0)
+          unless on(instance, job) puppet_catalog_version_timestamp_seconds)
+        for: 1h
         labels:
           severity: critical
         annotations:
-          summary: Last Puppet run was unsuccessful on {{ $labels.instance }}
+          summary: Puppet run is failing on {{ $labels.instance }}
           description: |
-            The most recent Puppet run for {{ $labels.instance }} is marked unsuccessful by the exporter.
+            The last Puppet run is unsuccessful, or an enabled agent has exposed no numeric catalog version, for at least 1 hour.
 
       - alert: PuppetResourceProblems
         expr: puppet_resources{name=~"failed|failed_to_restart|out_of_sync"} > 0
